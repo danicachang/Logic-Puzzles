@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.css": "/Logic-Puzzles/static/css/main.8c8b27cf.chunk.css",
+    "main.js": "/Logic-Puzzles/static/js/main.493ef113.chunk.js",
+    "main.js.map": "/Logic-Puzzles/static/js/main.493ef113.chunk.js.map",
+    "runtime-main.js": "/Logic-Puzzles/static/js/runtime-main.0373f9a5.js",
+    "runtime-main.js.map": "/Logic-Puzzles/static/js/runtime-main.0373f9a5.js.map",
+    "static/js/2.bb01d571.chunk.js": "/Logic-Puzzles/static/js/2.bb01d571.chunk.js",
+    "static/js/2.bb01d571.chunk.js.map": "/Logic-Puzzles/static/js/2.bb01d571.chunk.js.map",
+    "static/js/3.89615c8b.chunk.js": "/Logic-Puzzles/static/js/3.89615c8b.chunk.js",
+    "static/js/3.89615c8b.chunk.js.map": "/Logic-Puzzles/static/js/3.89615c8b.chunk.js.map",
+    "index.html": "/Logic-Puzzles/index.html",
+    "static/css/main.8c8b27cf.chunk.css.map": "/Logic-Puzzles/static/css/main.8c8b27cf.chunk.css.map",
+    "static/js/2.bb01d571.chunk.js.LICENSE.txt": "/Logic-Puzzles/static/js/2.bb01d571.chunk.js.LICENSE.txt",
+    "static/media/logo.6ce24c58.svg": "/Logic-Puzzles/static/media/logo.6ce24c58.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.0373f9a5.js",
+    "static/js/2.bb01d571.chunk.js",
+    "static/css/main.8c8b27cf.chunk.css",
+    "static/js/main.493ef113.chunk.js"
+  ]
+}
