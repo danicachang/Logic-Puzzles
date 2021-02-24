@@ -22,13 +22,8 @@ class Puzzle extends React.Component {
 				['E', 'E', 'E', 'D', 'D'],
 				['E', 'E', 'E', 'D', 'D']
 			],
-			puzzleState: [
-				[emptyState, emptyState, emptyState, emptyState, emptyState],
-				[emptyState, emptyState, emptyState, emptyState, emptyState],
-				[emptyState, emptyState, emptyState, emptyState, emptyState],
-				[emptyState, emptyState, emptyState, emptyState, emptyState],
-				[emptyState, emptyState, emptyState, emptyState, emptyState]
-			],
+			puzzleState: Array(5).fill().map(row => new Array(5).fill(emptyState)),
+			errors: Array(5).fill().map(row => new Array(5).fill(false)),
 			history: [],
 			animatingMarkedLocation: false
 		}
@@ -70,12 +65,11 @@ class Puzzle extends React.Component {
 
 			if (newVal === onState) {
 				setTimeout(()=>{
-					if (this.state.puzzleState[i][j] === onState) {
-						this.autoMarkNeighbors(i,j);
-					}
+					this.autoMarkNeighbors(i,j);
 				}, 500);
 			}
 
+			// const newState = state.puzzleState[i][j]=newVal;
 			const newState = state.puzzleState.map((row, x) => {
 				return row.map((val, y) => {
 					if (i===x && j===y) {
@@ -91,6 +85,8 @@ class Puzzle extends React.Component {
 				puzzleState : newState
 			};
 		});
+
+		this.checkForErrors();
 	}
 	handleRightClick(e,i,j){
 		this.handleClick(e,i,j, true);
@@ -98,6 +94,8 @@ class Puzzle extends React.Component {
 
 	autoMarkNeighbors(i, j) {
     this.setState(state => {
+			if (state.puzzleState[i][j] !== onState) return;
+
 			var puzzleVal = state.puzzle[i][j];
 			return {
 				animatingMarkedLocation: {
@@ -143,6 +141,38 @@ class Puzzle extends React.Component {
 		}, 1500); // Value must match .animatedBackground animation-duration
 	}
 
+	checkForErrors() {
+		this.setState(state => {
+			var listOfOnLocations = [];
+			var errors = Array(5).fill().map(row => new Array(5).fill(false));
+			state.puzzleState.forEach((row, x) => {
+				return row.forEach((val, y) => {
+					if (val === onState)
+						listOfOnLocations.push({
+							x: x,
+							y: y,
+							puzzleVal: state.puzzle[x][y]
+						})
+				});
+			});
+
+			listOfOnLocations.forEach((loc, i) => {
+				listOfOnLocations.forEach((loc2, j) => {
+					if (i >= j) return;
+					if (loc.x === loc2.x || loc.y === loc2.y || loc.puzzleVal === loc2.puzzleVal) {
+						errors[loc.x][loc.y] = true;
+						errors[loc2.x][loc2.y] = true;
+					}
+				});
+			});
+
+
+      return {
+				errors : errors
+			};
+		});
+	}
+
 	render() {
 		return (
 			<div className="puzzle">
@@ -162,9 +192,10 @@ class Puzzle extends React.Component {
 									rightBorder: 	j === this.state.cols-1 || this.state.puzzle[i][j+1] != cell,
 									bottomBorder: i === this.state.rows-1 || this.state.puzzle[i+1][j] != cell,
 									leftBorder: 	j === 0 || this.state.puzzle[i][j-1] != cell,
-									marked: val === markedState,
-									newlyMarked: val === newlyMarkedState,
-									[cell + "-color"]: true
+									marked:			  val === markedState,
+									newlyMarked: 	val === newlyMarkedState,
+									[cell + "-color"]: true,
+									error: 				this.state.errors[i][j]
 								});
 								var icon = val === onState? <GiSittingDog /> : "";
 								return (
