@@ -31,7 +31,13 @@ class Puzzle extends React.Component {
       puzzleState: puzzleState,
       errors: this.empty2DArray(size, false),
       animating: this.empty2DArray(size, false),
-      history: [puzzleState],
+      history: [
+        {
+          animatingMarkedLocation: false,
+          animating: this.empty2DArray(size, false),
+          puzzleState: puzzleState,
+        },
+      ],
       historyIndex: 0,
       animatingMarkedLocation: false,
       completed: false,
@@ -107,14 +113,8 @@ class Puzzle extends React.Component {
           setClearAnimationsTimer = true;
           animating = state.animating;
         }
-        const action = {
-          animating: animating,
-          puzzleState: state.puzzleState,
-        };
 
         return {
-          history: state.history.concat(action),
-          historyIndex: state.historyIndex + 1,
           puzzleState: newState,
           animating: animating,
           animatingMarkedLocation: false,
@@ -124,14 +124,16 @@ class Puzzle extends React.Component {
         this.checkForErrors();
 
         if (newVal === onState) {
-          this.autoMarkNeighbors(i, j);
+          this.autoMarkNeighbors(i, j, this.saveHistory);
+        } else {
+          this.saveHistory();
         }
 
         if (setClearAnimationsTimer) {
           this.animationTimer = setTimeout(() => {
             this.clearAnimations();
             this.animationTimer = null;
-          }, 1500);
+          }, 1000);
         }
       }
     );
@@ -140,7 +142,33 @@ class Puzzle extends React.Component {
     this.handleClick(e, i, j, true);
   }
 
-  autoMarkNeighbors(i, j) {
+  saveHistory() {
+    console.log("saveHistory");
+    this.setState(
+      (state) => {
+        var history = state.history;
+        if (state.historyIndex + 1 < history.length) {
+          history = history.slice(0, state.historyIndex + 1);
+        }
+
+        const action = {
+          animatingMarkedLocation: state.animatingMarkedLocation,
+          animating: state.animating,
+          puzzleState: state.puzzleState,
+        };
+        return {
+          history: history.concat(action),
+          historyIndex: history.length,
+        };
+      },
+      () => {
+        console.log(this.state.history);
+        console.log(this.state.historyIndex);
+      }
+    );
+  }
+
+  autoMarkNeighbors(i, j, callback) {
     this.setState((state) => {
       if (state.puzzleState[i][j] !== onState) return;
       if (state.errors[i][j]) return;
@@ -174,7 +202,7 @@ class Puzzle extends React.Component {
         puzzleState: puzzleState,
         animating: animating,
       };
-    });
+    }, callback);
   }
 
   clearAnimations() {
@@ -232,12 +260,14 @@ class Puzzle extends React.Component {
     this.setState((state) => {
       if (state.historyIndex < 1) return;
 
-      const newState = state.history[state.historyIndex - 1].prevPuzzleState;
-      console.log(newState, state.history);
+      const newState = state.history[state.historyIndex - 1];
+      console.log(state.history);
 
       return {
         historyIndex: state.historyIndex - 1,
-        puzzleState: newState,
+        animatingMarkedLocation: newState.animatingMarkedLocation,
+        puzzleState: newState.puzzleState,
+        animating: newState.animating,
       };
     });
   }
@@ -246,12 +276,14 @@ class Puzzle extends React.Component {
     this.setState((state) => {
       if (state.historyIndex >= state.history.length) return;
 
-      const newState = state.history[state.historyIndex + 1].prevPuzzleState;
-      console.log(state.historyIndex, newState, state.history);
+      const newState = state.history[state.historyIndex + 1];
+      //console.log(state.historyIndex, newState, state.history);
 
       return {
         historyIndex: state.historyIndex + 1,
-        puzzleState: newState,
+        animatingMarkedLocation: newState.animatingMarkedLocation,
+        puzzleState: newState.puzzleState,
+        animating: newState.animating,
       };
     });
   }
@@ -270,6 +302,8 @@ class Puzzle extends React.Component {
       };
     });
   }
+
+  componentDidUpdate() {}
 
   render() {
     return (
@@ -295,7 +329,7 @@ class Puzzle extends React.Component {
           </div>
           {this.state.completed && (
             <div className="completedOverlay">
-              <div class="completedModal">
+              <div className="completedModal">
                 <FaTrophy />
                 <br />
                 Completed
@@ -347,7 +381,7 @@ class Puzzle extends React.Component {
           </button>
           <button
             onClick={(e) => this.redo()}
-            disabled={this.state.historyIndex >= this.state.history.length}
+            disabled={this.state.historyIndex + 1 >= this.state.history.length}
           >
             <IoArrowRedo />
           </button>
