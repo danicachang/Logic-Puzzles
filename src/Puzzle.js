@@ -152,8 +152,8 @@ class Puzzle extends React.Component {
         }
 
         const action = {
-          animatingMarkedLocation: state.animatingMarkedLocation,
-          animating: state.animating,
+          //animatingMarkedLocation: state.animatingMarkedLocation,
+          //animating: state.animating,
           puzzleState: state.puzzleState,
         };
         return {
@@ -265,9 +265,9 @@ class Puzzle extends React.Component {
 
       return {
         historyIndex: state.historyIndex - 1,
-        animatingMarkedLocation: newState.animatingMarkedLocation,
         puzzleState: newState.puzzleState,
-        animating: newState.animating,
+        animatingMarkedLocation: false,
+        animating: this.empty2DArray(state.size, false),
       };
     });
   }
@@ -281,9 +281,7 @@ class Puzzle extends React.Component {
 
       return {
         historyIndex: state.historyIndex + 1,
-        animatingMarkedLocation: newState.animatingMarkedLocation,
         puzzleState: newState.puzzleState,
-        animating: newState.animating,
       };
     });
   }
