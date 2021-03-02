@@ -42,6 +42,7 @@ class Puzzle extends React.Component {
       animatingMarkedLocation: false,
       completed: false,
     };
+    this.initialState = this.state;
   }
 
   /*componentDidMount() {
@@ -143,29 +144,22 @@ class Puzzle extends React.Component {
   }
 
   saveHistory() {
-    console.log("saveHistory");
-    this.setState(
-      (state) => {
-        var history = state.history;
-        if (state.historyIndex + 1 < history.length) {
-          history = history.slice(0, state.historyIndex + 1);
-        }
-
-        const action = {
-          //animatingMarkedLocation: state.animatingMarkedLocation,
-          //animating: state.animating,
-          puzzleState: state.puzzleState,
-        };
-        return {
-          history: history.concat(action),
-          historyIndex: history.length,
-        };
-      },
-      () => {
-        console.log(this.state.history);
-        console.log(this.state.historyIndex);
+    this.setState((state) => {
+      var history = state.history;
+      if (state.historyIndex + 1 < history.length) {
+        history = history.slice(0, state.historyIndex + 1);
       }
-    );
+
+      const action = {
+        //animatingMarkedLocation: state.animatingMarkedLocation,
+        //animating: state.animating,
+        puzzleState: state.puzzleState,
+      };
+      return {
+        history: history.concat(action),
+        historyIndex: history.length,
+      };
+    });
   }
 
   autoMarkNeighbors(i, j, callback) {
@@ -285,20 +279,8 @@ class Puzzle extends React.Component {
       };
     });
   }
-  newPuzzle() {
-    this.setState((state) => {
-      return {
-        puzzleState: Array(5)
-          .fill()
-          .map((row) => new Array(5).fill(emptyState)),
-        errors: Array(5)
-          .fill()
-          .map((row) => new Array(5).fill(false)),
-        history: [],
-        animatingMarkedLocation: false,
-        completed: false,
-      };
-    });
+  resetPuzzle() {
+    this.setState(this.initialState);
   }
 
   componentDidUpdate() {}
@@ -371,7 +353,7 @@ class Puzzle extends React.Component {
           })}
         </div>
         <div className="puzzleControls">
-          <button>
+          <button onClick={(e) => this.resetPuzzle()}>
             <IoReload />
           </button>
           <button onClick={(e) => this.undo()} disabled={this.state.historyIndex < 1}>
