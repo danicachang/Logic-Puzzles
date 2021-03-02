@@ -78,9 +78,7 @@
     background-attachment: fixed;
   }
 
-  .newlyMarked,
-  .newlyMarked-enter,
-  .newlyMarked-exit {
+  .newlyMarked {
     background: none;
   }
 
@@ -107,8 +105,6 @@
       position: absolute;
       border-radius: 50%;
       box-shadow: 0px 0px 0px 2000px white;
-      //animation-duration: 5s; /* value must match setTimeout in js code */
-      //animation-name: grow;
       transform: translate(-50%, -50%);
     }
   }
@@ -144,18 +140,6 @@
   justify-content: space-around;
 }
 
-@keyframes grow {
-  from {
-    width: 0;
-    height: 0;
-  }
-
-  to {
-    width: 250%;
-    height: 250%;
-  }
-}
-
 .grow-enter {
   width: 0;
   height: 0;
@@ -165,11 +149,11 @@
 .grow-enter-done {
   width: 250%;
   height: 250%;
-  transition: all 1s ease-in;
+  transition: all 1s ease-in; /* value must match setTimeout in js code */
 }
 
 .grow-exit {
   width: 0;
   height: 0;
-  transition: all 0.7s ease-in;
+  transition: all 0.7s ease-in; /* value must match setTimeout in js code */
 }

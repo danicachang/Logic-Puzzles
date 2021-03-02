@@ -3,12 +3,11 @@ import classNames from "classnames/bind";
 import { CSSTransition } from "react-transition-group";
 import { GiSittingDog } from "react-icons/gi";
 import { FaTrophy } from "react-icons/fa";
-import { IoReload, IoArrowUndo, IoArrowRedo } from "react-icons/io5";
+import { IoReload, IoArrowUndo, IoArrowRedo, IoPlaySharp } from "react-icons/io5";
+import * as Constants from "./constants.js";
+import * as Utils from "./utils.js";
+import PuzzleSolver from "./PuzzleSolver.js";
 import "./Puzzle.scss";
-
-const onState = "O";
-const markedState = "x";
-const emptyState = "";
 
 class Puzzle extends React.Component {
   animationTimer = null;
@@ -17,7 +16,7 @@ class Puzzle extends React.Component {
     super(props);
 
     const size = 5;
-    const puzzleState = this.empty2DArray(size, emptyState);
+    const puzzleState = Utils.empty2DArray(size, Constants.emptyState);
     this.circleRef = React.createRef();
     this.state = {
       size: size,
@@ -29,15 +28,9 @@ class Puzzle extends React.Component {
         ["E", "E", "E", "D", "D"],
       ],
       puzzleState: puzzleState,
-      errors: this.empty2DArray(size, false),
-      animating: this.empty2DArray(size, false),
-      history: [
-        {
-          animatingMarkedLocation: false,
-          animating: this.empty2DArray(size, false),
-          puzzleState: puzzleState,
-        },
-      ],
+      errors: Utils.empty2DArray(size, false),
+      animating: Utils.empty2DArray(size, false),
+      history: [puzzleState],
       historyIndex: 0,
       animatingMarkedLocation: false,
       completed: false,
@@ -59,12 +52,6 @@ class Puzzle extends React.Component {
     return confirmationMessage;              // Gecko, WebKit, Chrome <34
   }*/
 
-  empty2DArray(size, value) {
-    return Array(size)
-      .fill()
-      .map((row) => new Array(size).fill(value));
-  }
-
   handleClick(e, i, j, alt = false) {
     e.preventDefault();
     var newVal;
@@ -73,14 +60,14 @@ class Puzzle extends React.Component {
       (state) => {
         const currentVal = state.puzzleState[i][j];
         if (alt) {
-          newVal = currentVal === emptyState ? onState : emptyState;
+          newVal = currentVal === Constants.emptyState ? Constants.onState : Constants.emptyState;
         } else {
           newVal =
-            currentVal === emptyState
-              ? markedState
-              : currentVal === markedState
-              ? onState
-              : emptyState;
+            currentVal === Constants.emptyState
+              ? Constants.markedState
+              : currentVal === Constants.markedState
+              ? Constants.onState
+              : Constants.emptyState;
         }
 
         // const newState = state.puzzleState[i][j]=newVal;
@@ -94,18 +81,18 @@ class Puzzle extends React.Component {
           });
         });
 
-        var animating = this.empty2DArray(state.size, false);
+        var animating = Utils.empty2DArray(state.size, false);
 
         // removing when it was the last thing toggled on
         if (
-          currentVal === onState &&
+          currentVal === Constants.onState &&
           state.animatingMarkedLocation.i === i &&
           state.animatingMarkedLocation.j === j
         ) {
           newState = newState.map((row, x) => {
             return row.map((val, y) => {
-              if (val === markedState && state.animating[x][y]) {
-                return emptyState;
+              if (val === Constants.markedState && state.animating[x][y]) {
+                return Constants.emptyState;
               } else {
                 return val;
               }
@@ -124,7 +111,7 @@ class Puzzle extends React.Component {
       () => {
         this.checkForErrors();
 
-        if (newVal === onState) {
+        if (newVal === Constants.onState) {
           this.autoMarkNeighbors(i, j, this.saveHistory);
         } else {
           this.saveHistory();
@@ -149,14 +136,8 @@ class Puzzle extends React.Component {
       if (state.historyIndex + 1 < history.length) {
         history = history.slice(0, state.historyIndex + 1);
       }
-
-      const action = {
-        //animatingMarkedLocation: state.animatingMarkedLocation,
-        //animating: state.animating,
-        puzzleState: state.puzzleState,
-      };
       return {
-        history: history.concat(action),
+        history: history.concat([state.puzzleState]),
         historyIndex: history.length,
       };
     });
@@ -164,7 +145,7 @@ class Puzzle extends React.Component {
 
   autoMarkNeighbors(i, j, callback) {
     this.setState((state) => {
-      if (state.puzzleState[i][j] !== onState) return;
+      if (state.puzzleState[i][j] !== Constants.onState) return;
       if (state.errors[i][j]) return;
 
       if (this.animationTimer) {
@@ -173,18 +154,19 @@ class Puzzle extends React.Component {
       }
 
       const puzzleVal = state.puzzle[i][j];
-      var animating = this.empty2DArray(state.size, true);
+      var animating = Utils.empty2DArray(state.size, true);
       const puzzleState = state.puzzleState.map((row, x) => {
         return row.map((val, y) => {
-          if (val === emptyState) {
+          if (val === Constants.emptyState) {
             // same row or column
-            if (i === x || j === y) return markedState;
+            if (i === x || j === y) return Constants.markedState;
 
             // diagonally adjacent
-            if ((i === x + 1 || i === x - 1) && (j === y + 1 || j === y - 1)) return markedState;
+            if ((i === x + 1 || i === x - 1) && (j === y + 1 || j === y - 1))
+              return Constants.markedState;
 
             // same color background
-            if (puzzleVal === state.puzzle[x][y]) return markedState;
+            if (puzzleVal === state.puzzle[x][y]) return Constants.markedState;
           }
           animating[x][y] = false;
           return val;
@@ -203,7 +185,7 @@ class Puzzle extends React.Component {
     this.setState((state) => {
       return {
         animatingMarkedLocation: false,
-        animating: this.empty2DArray(state.size, false),
+        animating: Utils.empty2DArray(state.size, false),
       };
     });
   }
@@ -217,7 +199,7 @@ class Puzzle extends React.Component {
       var errorCount = 0;
       state.puzzleState.forEach((row, x) => {
         return row.forEach((val, y) => {
-          if (val === onState)
+          if (val === Constants.onState)
             listOfOnLocations.push({
               x: x,
               y: y,
@@ -255,15 +237,15 @@ class Puzzle extends React.Component {
       if (state.historyIndex < 1) return;
 
       const newState = state.history[state.historyIndex - 1];
-      console.log(state.history);
 
       return {
         historyIndex: state.historyIndex - 1,
-        puzzleState: newState.puzzleState,
+        puzzleState: newState,
         animatingMarkedLocation: false,
-        animating: this.empty2DArray(state.size, false),
+        animating: Utils.empty2DArray(state.size, false),
       };
     });
+    this.checkForErrors();
   }
 
   redo() {
@@ -271,19 +253,28 @@ class Puzzle extends React.Component {
       if (state.historyIndex >= state.history.length) return;
 
       const newState = state.history[state.historyIndex + 1];
-      //console.log(state.historyIndex, newState, state.history);
 
       return {
         historyIndex: state.historyIndex + 1,
-        puzzleState: newState.puzzleState,
+        puzzleState: newState,
       };
     });
+
+    this.checkForErrors();
   }
+
   resetPuzzle() {
     this.setState(this.initialState);
   }
 
-  componentDidUpdate() {}
+  solvePuzzle() {
+    this.setState((state) => {
+      return {
+        history: PuzzleSolver(state.puzzle),
+        historyIndex: 0,
+      };
+    });
+  }
 
   render() {
     return (
@@ -331,12 +322,12 @@ class Puzzle extends React.Component {
                     rightBorder: j === this.state.size - 1 || this.state.puzzle[i][j + 1] !== cell,
                     bottomBorder: i === this.state.size - 1 || this.state.puzzle[i + 1][j] !== cell,
                     leftBorder: j === 0 || this.state.puzzle[i][j - 1] !== cell,
-                    marked: val === markedState,
+                    marked: val === Constants.markedState,
                     newlyMarked: this.state.animating[i][j],
                     [cell + "-color"]: true,
                     error: this.state.errors[i][j],
                   });
-                  var icon = val === onState ? <GiSittingDog /> : "";
+                  var icon = val === Constants.onState ? <GiSittingDog /> : "";
                   return (
                     <div
                       key={j}
@@ -355,6 +346,9 @@ class Puzzle extends React.Component {
         <div className="puzzleControls">
           <button onClick={(e) => this.resetPuzzle()}>
             <IoReload />
+          </button>
+          <button onClick={(e) => this.solvePuzzle()}>
+            <IoPlaySharp />
           </button>
           <button onClick={(e) => this.undo()} disabled={this.state.historyIndex < 1}>
             <IoArrowUndo />
