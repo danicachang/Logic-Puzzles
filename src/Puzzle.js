@@ -15,17 +15,18 @@ class Puzzle extends React.Component {
   constructor(props) {
     super(props);
 
-    const size = 5;
+    const size = 6;
     const puzzleState = Utils.empty2DArray(size, Constants.emptyState);
     this.circleRef = React.createRef();
     this.state = {
       size: size,
       puzzle: [
-        ["A", "B", "B", "C", "C"],
-        ["A", "A", "B", "D", "D"],
-        ["A", "A", "D", "D", "D"],
-        ["E", "E", "E", "D", "D"],
-        ["E", "E", "E", "D", "D"],
+        ["A", "A", "A", "A", "A", "B"],
+        ["A", "A", "B", "B", "B", "B"],
+        ["A", "A", "A", "A", "B", "C"],
+        ["D", "D", "D", "A", "C", "C"],
+        ["D", "E", "E", "C", "C", "C"],
+        ["D", "F", "F", "F", "F", "C"],
       ],
       puzzleState: puzzleState,
       errors: Utils.empty2DArray(size, false),
@@ -153,30 +154,12 @@ class Puzzle extends React.Component {
         this.animationTimer = null;
       }
 
-      const puzzleVal = state.puzzle[i][j];
-      var animating = Utils.empty2DArray(state.size, true);
-      const puzzleState = state.puzzleState.map((row, x) => {
-        return row.map((val, y) => {
-          if (val === Constants.emptyState) {
-            // same row or column
-            if (i === x || j === y) return Constants.markedState;
-
-            // diagonally adjacent
-            if ((i === x + 1 || i === x - 1) && (j === y + 1 || j === y - 1))
-              return Constants.markedState;
-
-            // same color background
-            if (puzzleVal === state.puzzle[x][y]) return Constants.markedState;
-          }
-          animating[x][y] = false;
-          return val;
-        });
-      });
+      const result = Utils.markNeighbors(i, j, state.puzzleState, state.puzzle);
 
       return {
         animatingMarkedLocation: { i: i, j: j },
-        puzzleState: puzzleState,
-        animating: animating,
+        puzzleState: result.puzzleState,
+        animating: result.changed,
       };
     }, callback);
   }
@@ -192,42 +175,11 @@ class Puzzle extends React.Component {
 
   checkForErrors() {
     this.setState((state) => {
-      var listOfOnLocations = [];
-      var errors = Array(5)
-        .fill()
-        .map((row) => new Array(5).fill(false));
-      var errorCount = 0;
-      state.puzzleState.forEach((row, x) => {
-        return row.forEach((val, y) => {
-          if (val === Constants.onState)
-            listOfOnLocations.push({
-              x: x,
-              y: y,
-              puzzleVal: state.puzzle[x][y],
-            });
-        });
-      });
-
-      listOfOnLocations.forEach((loc, i) => {
-        listOfOnLocations.forEach((loc2, j) => {
-          if (i >= j) return;
-          if (
-            loc.x === loc2.x || // same row
-            loc.y === loc2.y || // same col
-            loc.puzzleVal === loc2.puzzleVal || // same color
-            ((loc.x === loc2.x + 1 || loc.x === loc2.x - 1) && // diagonal
-              (loc.y === loc2.y + 1 || loc.y === loc2.y - 1))
-          ) {
-            errors[loc.x][loc.y] = true;
-            errors[loc2.x][loc2.y] = true;
-            errorCount++;
-          }
-        });
-      });
+      var result = Utils.checkPuzzle(state.size, state.puzzle, state.puzzleState);
 
       return {
-        errors: errors,
-        completed: errorCount === 0 && listOfOnLocations.length === state.puzzle.length,
+        errors: result.errors,
+        completed: result.completed,
       };
     });
   }
@@ -269,8 +221,9 @@ class Puzzle extends React.Component {
 
   solvePuzzle() {
     this.setState((state) => {
+      var solver = new PuzzleSolver(state.puzzle);
       return {
-        history: PuzzleSolver(state.puzzle),
+        history: solver.solve(),
         historyIndex: 0,
       };
     });

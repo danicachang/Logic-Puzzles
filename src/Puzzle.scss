@@ -71,6 +71,9 @@
   .E-color:before {
     background: color.change(blue, $alpha: 0.5);
   }
+  .F-color:before {
+    background: color.change(purple, $alpha: 0.5);
+  }
 
   .marked {
     background-image: url(./images/pawprints.jpg);
