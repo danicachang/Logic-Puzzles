@@ -10,8 +10,8 @@ class PuzzleSolver {
     this.isSolved = false;
   }
 
-  solve() {
-    for (let i = 0; i < 7; i++) {
+  solve(maxLoops = 10) {
+    for (let i = 0; i < maxLoops; i++) {
       console.log("compute");
       var puzzleStateInfo = Utils.computeInfo(this.puzzleState, this.puzzle);
       if (
@@ -78,6 +78,7 @@ class PuzzleSolver {
   onIfLastEmpty(puzzleStateInfo) {
     console.log("onIfLastEmpty");
     for (const [typeOfCriteria, valueOfCriteria] of Object.entries(puzzleStateInfo)) {
+      if (typeOfCriteria === "onLocations") continue;
       for (let i = 0; i < valueOfCriteria.length; i++) {
         const value = valueOfCriteria[i];
         if (value[Constants.onState].length === 0 && value[Constants.emptyState].length === 1) {

@@ -23,42 +23,52 @@ export function setPuzzleState(puzzleState, i, j, newVal) {
   });
 }
 
-export function checkPuzzle(size, puzzle, puzzleState) {
-  var listOfOnLocations = [];
-  var errors = empty2DArray(size, false);
-  var errorCount = 0;
-  puzzleState.forEach((row, x) => {
-    row.forEach((val, y) => {
-      if (val === Constants.onState)
-        listOfOnLocations.push({
-          x: x,
-          y: y,
-          puzzleVal: puzzle[x][y],
-        });
-    });
-  });
+export function checkPuzzle(size, puzzle, puzzleState, info) {
+  if (!info) {
+    info = computeInfo(puzzleState, puzzle);
+  }
 
-  listOfOnLocations.forEach((loc, i) => {
-    listOfOnLocations.forEach((loc2, j) => {
+  var errors = empty2DArray(size, false);
+  var errorCount = [0];
+
+  for (const [typeOfCriteria, valueOfCriteria] of Object.entries(info)) {
+    if (typeOfCriteria === "onLocations") continue;
+    for (let i = 0; i < valueOfCriteria.length; i++) {
+      const value = valueOfCriteria[i];
+      if (value[Constants.onState].length > 1) {
+        value[Constants.onState].forEach((loc) => {
+          errors[loc.i][loc.j] = true;
+          errorCount[0]++;
+        });
+      }
+      if (value[Constants.onState].length === 0 && value[Constants.emptyState].length === 0) {
+        value[Constants.markedState].forEach((loc) => {
+          errors[loc.i][loc.j] = true;
+          errorCount[0]++;
+        });
+      }
+    }
+  }
+
+  info.onLocations.forEach((loc, i) => {
+    info.onLocations.forEach((loc2, j) => {
       if (i >= j) return;
       if (
-        loc.x === loc2.x || // same row
-        loc.y === loc2.y || // same col
-        loc.puzzleVal === loc2.puzzleVal || // same color
-        ((loc.x === loc2.x + 1 || loc.x === loc2.x - 1) && // diagonal
-          (loc.y === loc2.y + 1 || loc.y === loc2.y - 1))
+        (loc.x === loc2.x + 1 || loc.x === loc2.x - 1) && // diagonal
+        (loc.y === loc2.y + 1 || loc.y === loc2.y - 1)
       ) {
         errors[loc.x][loc.y] = true;
         errors[loc2.x][loc2.y] = true;
-        errorCount++;
+        errorCount[0]++;
       }
     });
   });
 
+  console.log("errors", errorCount[0], errors);
   return {
     errors: errors,
-    errorCount: errorCount,
-    completed: errorCount === 0 && listOfOnLocations.length === size,
+    errorCount: errorCount[0],
+    completed: errorCount[0] === 0 && info.onLocations.length === size,
   };
 }
 
@@ -99,6 +109,7 @@ export function computeInfo(puzzleState, puzzle) {
     rows: new Array(size),
     columns: new Array(size),
     colors: new Array(size),
+    onLocations: [],
   };
 
   for (let i = 0; i < size; i++) {
@@ -121,10 +132,15 @@ export function computeInfo(puzzleState, puzzle) {
 
   puzzleState.forEach((row, x) => {
     row.forEach((val, y) => {
-      var letter = puzzle[x][y];
-      data.rows[x][val].push({ i: x, j: y });
-      data.columns[y][val].push({ i: x, j: y });
-      data.colors[alphaToNum(letter)][val].push({ i: x, j: y });
+      const letter = puzzle[x][y];
+      const location = { i: x, j: y };
+      data.rows[x][val].push(location);
+      data.columns[y][val].push(location);
+      data.colors[alphaToNum(letter)][val].push(location);
+
+      if (val === Constants.onState) {
+        data.onLocations.push(location);
+      }
     });
   });
   return data;

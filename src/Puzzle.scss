@@ -79,6 +79,11 @@
     background-image: url(./images/pawprints.jpg);
     background-size: 50vw;
     background-attachment: fixed;
+    &.error {
+      background-image: url(./images/pawprints_inverse.jpg);
+      background-size: 50vw;
+      background-attachment: fixed;
+    }
   }
 
   .newlyMarked {
@@ -90,11 +95,14 @@
     width: 100%;
     height: 100%;
     top: 0;
-    font-size: 8rem;
+    font-size: 6rem;
     text-align: center;
   }
   .error {
     color: red;
+    .content {
+      filter: drop-shadow(5px 5px 4px black);
+    }
   }
 
   .animatedBackground {

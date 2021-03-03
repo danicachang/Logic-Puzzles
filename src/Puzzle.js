@@ -118,6 +118,8 @@ class Puzzle extends React.Component {
           this.saveHistory();
         }
 
+        this.checkForErrors();
+
         if (setClearAnimationsTimer) {
           this.animationTimer = setTimeout(() => {
             this.clearAnimations();
@@ -280,7 +282,14 @@ class Puzzle extends React.Component {
                     [cell + "-color"]: true,
                     error: this.state.errors[i][j],
                   });
-                  var icon = val === Constants.onState ? <GiSittingDog /> : "";
+                  var icon =
+                    val === Constants.onState ? (
+                      <GiSittingDog />
+                    ) : Constants.markedState && this.state.errors[i][j] ? (
+                      "!"
+                    ) : (
+                      ""
+                    );
                   return (
                     <div
                       key={j}
