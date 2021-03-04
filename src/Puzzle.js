@@ -227,7 +227,7 @@ class Puzzle extends React.Component {
     this.setState((state) => {
       var solver = new PuzzleSolver(state.puzzle);
       return {
-        history: solver.solve(),
+        history: solver.solve().history,
         historyIndex: 0,
       };
     });

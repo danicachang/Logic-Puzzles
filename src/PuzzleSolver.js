@@ -11,7 +11,7 @@ class PuzzleSolver {
     this.guessIndexes = [];
     this.maxGuessDepth = options.maxGuessDepth || 2;
     this.findMultipleSolutions = !!options.findMultipleSolutions;
-    console.log(this.findMultipleSolutions);
+    this.solutions = [];
   }
 
   solve(maxLoops = 100) {
@@ -19,11 +19,21 @@ class PuzzleSolver {
       console.log("compute");
       var puzzleStateInfo = Utils.computeInfo(this.puzzleState, this.puzzle);
       var errors = Utils.checkPuzzle(this.puzzle, this.puzzleState, puzzleStateInfo);
-      if (errors.errorCount > 0) return false;
+      if (errors.errorCount > 0)
+        return {
+          history: this.history,
+          isSolved: false,
+          error: true,
+        };
       if (errors.completed) {
         console.log("Solved");
         this.isSolved = true;
-        return this.history;
+        this.solutions.push(this.puzzleState);
+        return {
+          history: this.history,
+          isSolved: true,
+          error: false,
+        };
       }
 
       if (
@@ -39,7 +49,11 @@ class PuzzleSolver {
     }
 
     console.log(this.history);
-    return this.history;
+    return {
+      history: this.history,
+      isSolved: false,
+      error: false,
+    };
   }
 
   onIfLastEmpty(puzzleStateInfo) {
@@ -118,12 +132,12 @@ class PuzzleSolver {
     return puzzleStateInfo.emptyLocations.some((loc) => {
       this.setPuzzleState(loc.i, loc.j, Constants.onState, false);
       var result = this.solve(10);
-      if (!result) {
+      if (result.error || (result.isSolved && this.findMultipleSolutions)) {
         this.resetState(originalPuzzleState, this.guessIndexes.pop());
         this.setPuzzleState(loc.i, loc.j, Constants.markedState);
         return true;
       }
-      if (this.isSolved) {
+      if (result.isSolved) {
         return true;
       }
       return false;
