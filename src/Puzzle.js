@@ -15,18 +15,20 @@ class Puzzle extends React.Component {
   constructor(props) {
     super(props);
 
-    const size = 6;
+    const size = 8;
     const puzzleState = Utils.empty2DArray(size, Constants.emptyState);
     this.circleRef = React.createRef();
     this.state = {
       size: size,
       puzzle: [
-        ["A", "A", "A", "A", "A", "B"],
-        ["A", "A", "B", "B", "B", "B"],
-        ["A", "A", "A", "A", "B", "C"],
-        ["D", "D", "D", "A", "C", "C"],
-        ["D", "E", "E", "C", "C", "C"],
-        ["D", "F", "F", "F", "F", "C"],
+        ["A", "A", "A", "B", "C", "D", "D", "C"],
+        ["E", "A", "A", "B", "C", "C", "C", "C"],
+        ["E", "A", "A", "A", "A", "A", "C", "A"],
+        ["E", "A", "A", "A", "A", "A", "A", "A"],
+        ["E", "E", "E", "F", "F", "G", "A", "A"],
+        ["E", "F", "F", "F", "F", "G", "H", "A"],
+        ["F", "F", "F", "F", "G", "G", "H", "H"],
+        ["F", "F", "G", "G", "G", "H", "H", "H"],
       ],
       puzzleState: puzzleState,
       errors: Utils.empty2DArray(size, false),
@@ -177,7 +179,7 @@ class Puzzle extends React.Component {
 
   checkForErrors() {
     this.setState((state) => {
-      var result = Utils.checkPuzzle(state.size, state.puzzle, state.puzzleState);
+      var result = Utils.checkPuzzle(state.puzzle, state.puzzleState);
 
       return {
         errors: result.errors,
@@ -234,7 +236,7 @@ class Puzzle extends React.Component {
   render() {
     return (
       <div className="puzzleContainer">
-        <div className="puzzle">
+        <div className={"puzzle size-" + this.state.size}>
           <div className="animatedBackground">
             <CSSTransition
               in={this.state.animatingMarkedLocation !== false}

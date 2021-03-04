@@ -2,22 +2,35 @@ import * as Constants from "./constants.js";
 import * as Utils from "./utils.js";
 
 class PuzzleSolver {
-  constructor(puzzle) {
+  constructor(puzzle, options = {}) {
     this.puzzle = puzzle;
     this.size = puzzle.length;
     this.puzzleState = Utils.empty2DArray(this.size, Constants.emptyState);
     this.history = [this.puzzleState];
     this.isSolved = false;
+    this.guessIndexes = [];
+    this.maxGuessDepth = options.maxGuessDepth || 2;
+    this.findMultipleSolutions = !!options.findMultipleSolutions;
+    console.log(this.findMultipleSolutions);
   }
 
-  solve(maxLoops = 10) {
+  solve(maxLoops = 100) {
     for (let i = 0; i < maxLoops; i++) {
       console.log("compute");
       var puzzleStateInfo = Utils.computeInfo(this.puzzleState, this.puzzle);
+      var errors = Utils.checkPuzzle(this.puzzle, this.puzzleState, puzzleStateInfo);
+      if (errors.errorCount > 0) return false;
+      if (errors.completed) {
+        console.log("Solved");
+        this.isSolved = true;
+        return this.history;
+      }
+
       if (
         !(
           this.onIfLastEmpty(puzzleStateInfo) ||
-          this.markIfColorInUniqueRowOrColumn(puzzleStateInfo)
+          this.markIfColorInUniqueRowOrColumn(puzzleStateInfo) ||
+          this.tryGuesses(puzzleStateInfo)
         )
       ) {
         console.log("Stuck");
@@ -27,6 +40,26 @@ class PuzzleSolver {
 
     console.log(this.history);
     return this.history;
+  }
+
+  onIfLastEmpty(puzzleStateInfo) {
+    console.log("onIfLastEmpty");
+    for (const [typeOfCriteria, valueOfCriteria] of Object.entries(puzzleStateInfo)) {
+      if (typeOfCriteria === "onLocations") continue;
+      if (typeOfCriteria === "emptyLocations") continue;
+      for (let i = 0; i < valueOfCriteria.length; i++) {
+        const value = valueOfCriteria[i];
+        if (value[Constants.onState].length === 0 && value[Constants.emptyState].length === 1) {
+          this.setPuzzleState(
+            value[Constants.emptyState][0].i,
+            value[Constants.emptyState][0].j,
+            Constants.onState
+          );
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   markIfColorInUniqueRowOrColumn(puzzleStateInfo) {
@@ -75,26 +108,29 @@ class PuzzleSolver {
     return change;
   }
 
-  onIfLastEmpty(puzzleStateInfo) {
-    console.log("onIfLastEmpty");
-    for (const [typeOfCriteria, valueOfCriteria] of Object.entries(puzzleStateInfo)) {
-      if (typeOfCriteria === "onLocations") continue;
-      for (let i = 0; i < valueOfCriteria.length; i++) {
-        const value = valueOfCriteria[i];
-        if (value[Constants.onState].length === 0 && value[Constants.emptyState].length === 1) {
-          this.setPuzzleState(
-            value[Constants.emptyState][0].i,
-            value[Constants.emptyState][0].j,
-            Constants.onState
-          );
-          return true;
-        }
+  tryGuesses(puzzleStateInfo) {
+    if (this.guessIndexes.length > this.maxGuessDepth) return false;
+
+    console.log("tryGuesses");
+    this.guessIndexes.push(this.history.length);
+
+    var originalPuzzleState = this.puzzleState;
+    return puzzleStateInfo.emptyLocations.some((loc) => {
+      this.setPuzzleState(loc.i, loc.j, Constants.onState, false);
+      var result = this.solve(10);
+      if (!result) {
+        this.resetState(originalPuzzleState, this.guessIndexes.pop());
+        this.setPuzzleState(loc.i, loc.j, Constants.markedState);
+        return true;
       }
-    }
-    return false;
+      if (this.isSolved) {
+        return true;
+      }
+      return false;
+    });
   }
 
-  setPuzzleState(i, j, val) {
+  setPuzzleState(i, j, val, saveHistory = true) {
     console.log(i, j, val);
     this.puzzleState = Utils.setPuzzleState(this.puzzleState, i, j, val);
 
@@ -103,7 +139,12 @@ class PuzzleSolver {
       this.puzzleState = results.puzzleState;
     }
 
-    this.history.push(this.puzzleState);
+    if (saveHistory) this.history.push(this.puzzleState);
+  }
+
+  resetState(puzzleState, guessIndex) {
+    this.puzzleState = puzzleState;
+    this.history = this.history.slice(0, guessIndex);
   }
 }
 

@@ -11,7 +11,7 @@
 
 .puzzle {
   user-select: none;
-  width: calc(100vh - 8rem);
+  width: calc(100vh - 9rem);
   margin: 1rem auto;
   border: 4px solid black;
   position: relative;
@@ -41,6 +41,15 @@
       height: 100%;
       position: relative;
     }
+  }
+  &.size-5 .cell {
+    width: 100 / 5 * 1%;
+  }
+  &.size-6 .cell {
+    width: 100 / 6 * 1%;
+  }
+  &.size-8 .cell {
+    width: 100 / 8 * 1%;
   }
 
   .topBorder {
@@ -73,6 +82,12 @@
   }
   .F-color:before {
     background: color.change(purple, $alpha: 0.5);
+  }
+  .G-color:before {
+    background: color.change(teal, $alpha: 0.5);
+  }
+  .H-color:before {
+    background: color.change(pink, $alpha: 0.5);
   }
 
   .marked {

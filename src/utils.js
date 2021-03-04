@@ -23,16 +23,18 @@ export function setPuzzleState(puzzleState, i, j, newVal) {
   });
 }
 
-export function checkPuzzle(size, puzzle, puzzleState, info) {
+export function checkPuzzle(puzzle, puzzleState, info) {
   if (!info) {
     info = computeInfo(puzzleState, puzzle);
   }
 
+  var size = puzzle.length;
   var errors = empty2DArray(size, false);
   var errorCount = [0];
 
   for (const [typeOfCriteria, valueOfCriteria] of Object.entries(info)) {
     if (typeOfCriteria === "onLocations") continue;
+    if (typeOfCriteria === "emptyLocations") continue;
     for (let i = 0; i < valueOfCriteria.length; i++) {
       const value = valueOfCriteria[i];
       if (value[Constants.onState].length > 1) {
@@ -64,7 +66,6 @@ export function checkPuzzle(size, puzzle, puzzleState, info) {
     });
   });
 
-  console.log("errors", errorCount[0], errors);
   return {
     errors: errors,
     errorCount: errorCount[0],
@@ -110,6 +111,7 @@ export function computeInfo(puzzleState, puzzle) {
     columns: new Array(size),
     colors: new Array(size),
     onLocations: [],
+    emptyLocations: [],
   };
 
   for (let i = 0; i < size; i++) {
@@ -140,6 +142,8 @@ export function computeInfo(puzzleState, puzzle) {
 
       if (val === Constants.onState) {
         data.onLocations.push(location);
+      } else if (val === Constants.emptyState) {
+        data.emptyLocations.push(location);
       }
     });
   });
