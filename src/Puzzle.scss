@@ -51,6 +51,12 @@
   &.size-8 .cell {
     width: 100 / 8 * 1%;
   }
+  &.size-10 .cell {
+    width: 100 / 10 * 1%;
+  }
+  &.size-12 .cell {
+    width: 100 / 12 * 1%;
+  }
 
   .topBorder {
     border-top-width: 5px;
@@ -63,6 +69,21 @@
   }
   .leftBorder {
     border-left-width: 5px;
+  }
+
+  @media (max-width: 700px) {
+    .topBorder {
+      border-top-width: 2px;
+    }
+    .rightBorder {
+      border-right-width: 2px;
+    }
+    .bottomBorder {
+      border-bottom-width: 2px;
+    }
+    .leftBorder {
+      border-left-width: 2px;
+    }
   }
 
   .A-color:before {
@@ -89,15 +110,19 @@
   .H-color:before {
     background: color.change(pink, $alpha: 0.5);
   }
+  .I-color:before {
+    background: color.change(lime, $alpha: 0.5);
+  }
+  .J-color:before {
+    background: color.change(brown, $alpha: 0.5);
+  }
 
   .marked {
     background-image: url(./images/pawprints.jpg);
-    background-size: 50vw;
+    background-size: 50vh;
     background-attachment: fixed;
-    &.error {
-      background-image: url(./images/pawprints_inverse.jpg);
+    @media all and (orientation: portrait) {
       background-size: 50vw;
-      background-attachment: fixed;
     }
   }
 
@@ -110,13 +135,19 @@
     width: 100%;
     height: 100%;
     top: 0;
-    font-size: 6rem;
     text-align: center;
-  }
-  .error {
-    color: red;
-    .content {
+    padding: 0.25rem;
+    svg {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: red;
       filter: drop-shadow(5px 5px 4px black);
+      font-size: 4rem;
+      @media (max-width: 700px) {
+        font-size: 1.5rem;
+      }
     }
   }
 
@@ -125,8 +156,11 @@
     width: 100%;
     height: 100%;
     background-image: url(./images/pawprints.jpg);
-    background-size: 50vw;
+    background-size: 50vh;
     background-attachment: fixed;
+    @media all and (orientation: portrait) {
+      background-size: 50vw;
+    }
     .circle {
       position: absolute;
       border-radius: 50%;

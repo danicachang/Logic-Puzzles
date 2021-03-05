@@ -23,7 +23,7 @@ export function setPuzzleState(puzzleState, i, j, newVal) {
   });
 }
 
-export function checkPuzzle(puzzle, puzzleState, info) {
+export function checkPuzzle(puzzle, puzzleState, numPerRow, info) {
   if (!info) {
     info = computeInfo(puzzleState, puzzle);
   }
@@ -37,13 +37,15 @@ export function checkPuzzle(puzzle, puzzleState, info) {
     if (typeOfCriteria === "emptyLocations") continue;
     for (let i = 0; i < valueOfCriteria.length; i++) {
       const value = valueOfCriteria[i];
-      if (value[Constants.onState].length > 1) {
+      const numOnState = value[Constants.onState].length;
+      const numEmptyState = value[Constants.emptyState].length;
+      if (numOnState > numPerRow) {
         value[Constants.onState].forEach((loc) => {
           errors[loc.i][loc.j] = true;
           errorCount[0]++;
         });
       }
-      if (value[Constants.onState].length === 0 && value[Constants.emptyState].length === 0) {
+      if (numOnState + numEmptyState < numPerRow) {
         value[Constants.markedState].forEach((loc) => {
           errors[loc.i][loc.j] = true;
           errorCount[0]++;
@@ -52,15 +54,18 @@ export function checkPuzzle(puzzle, puzzleState, info) {
     }
   }
 
+  // adjacent
   info.onLocations.forEach((loc, i) => {
     info.onLocations.forEach((loc2, j) => {
       if (i >= j) return;
       if (
-        (loc.x === loc2.x + 1 || loc.x === loc2.x - 1) && // diagonal
-        (loc.y === loc2.y + 1 || loc.y === loc2.y - 1)
+        loc.i <= loc2.i + 1 &&
+        loc.i >= loc2.i - 1 &&
+        loc.j <= loc2.j + 1 &&
+        loc.j >= loc2.j - 1
       ) {
-        errors[loc.x][loc.y] = true;
-        errors[loc2.x][loc2.y] = true;
+        errors[loc.i][loc.j] = true;
+        errors[loc2.i][loc2.j] = true;
         errorCount[0]++;
       }
     });
@@ -69,29 +74,41 @@ export function checkPuzzle(puzzle, puzzleState, info) {
   return {
     errors: errors,
     errorCount: errorCount[0],
-    completed: errorCount[0] === 0 && info.onLocations.length === size,
+    completed: errorCount[0] === 0 && info.onLocations.length === size * numPerRow,
   };
 }
 
-export function markNeighbors(i, j, puzzleState, puzzle) {
+export function markNeighbors(i, j, puzzleState, puzzle, numPerRow) {
   if (puzzleState[i][j] !== Constants.onState)
     return { puzzleState: puzzleState, changed: empty2DArray(puzzle.length, false) };
 
   const puzzleVal = puzzle[i][j];
   var changed = empty2DArray(puzzle.length, true);
+  var info = computeInfo(puzzleState, puzzle);
 
   const newPuzzleState = puzzleState.map((row, x) => {
     return row.map((val, y) => {
       if (val === Constants.emptyState) {
-        // same row or column
-        if (i === x || j === y) return Constants.markedState;
+        // adjacent
+        if (i <= x + 1 && i >= x - 1 && j <= y + 1 && j >= y - 1) {
+          return Constants.markedState;
+        }
 
-        // diagonally adjacent
-        if ((i === x + 1 || i === x - 1) && (j === y + 1 || j === y - 1))
+        // filled row
+        if (i === x && info.rows[i][Constants.onState].length === numPerRow)
           return Constants.markedState;
 
-        // same color background
-        if (puzzleVal === puzzle[x][y]) return Constants.markedState;
+        // filled column
+        if (j === y && info.columns[j][Constants.onState].length === numPerRow)
+          return Constants.markedState;
+
+        // filled color
+        const letter = puzzle[x][y];
+        if (
+          puzzleVal === letter &&
+          info.colors[alphaToNum(letter)][Constants.onState].length === numPerRow
+        )
+          return Constants.markedState;
       }
       changed[x][y] = false;
       return val;

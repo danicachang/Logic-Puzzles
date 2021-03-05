@@ -1,9 +1,15 @@
 import React from "react";
 import classNames from "classnames/bind";
 import { CSSTransition } from "react-transition-group";
-import { GiSittingDog } from "react-icons/gi";
 import { FaTrophy } from "react-icons/fa";
-import { IoReload, IoArrowUndo, IoArrowRedo, IoPlaySharp } from "react-icons/io5";
+import {
+  IoReload,
+  IoArrowUndo,
+  IoArrowRedo,
+  IoPlaySharp,
+  IoAlertCircleSharp,
+} from "react-icons/io5";
+import DogSVG from "./images/dog.svg";
 import * as Constants from "./constants.js";
 import * as Utils from "./utils.js";
 import PuzzleSolver from "./PuzzleSolver.js";
@@ -15,21 +21,24 @@ class Puzzle extends React.Component {
   constructor(props) {
     super(props);
 
-    const size = 8;
+    const puzzle = [
+      ["A", "A", "A", "A", "A", "A", "A", "A", "B", "B"],
+      ["A", "A", "A", "A", "A", "A", "C", "A", "B", "B"],
+      ["D", "E", "E", "E", "A", "C", "C", "C", "B", "B"],
+      ["D", "D", "D", "D", "F", "G", "G", "C", "B", "B"],
+      ["D", "D", "D", "F", "F", "F", "G", "G", "B", "B"],
+      ["D", "D", "H", "F", "F", "F", "G", "G", "B", "B"],
+      ["D", "D", "H", "H", "H", "G", "G", "G", "I", "B"],
+      ["D", "D", "D", "D", "D", "D", "G", "G", "I", "B"],
+      ["D", "J", "J", "J", "J", "J", "J", "J", "I", "I"],
+      ["J", "J", "J", "J", "J", "J", "J", "J", "J", "I"],
+    ];
+    const size = puzzle.length;
     const puzzleState = Utils.empty2DArray(size, Constants.emptyState);
-    this.circleRef = React.createRef();
     this.state = {
       size: size,
-      puzzle: [
-        ["A", "A", "A", "B", "C", "D", "D", "C"],
-        ["E", "A", "A", "B", "C", "C", "C", "C"],
-        ["E", "A", "A", "A", "A", "A", "C", "A"],
-        ["E", "A", "A", "A", "A", "A", "A", "A"],
-        ["E", "E", "E", "F", "F", "G", "A", "A"],
-        ["E", "F", "F", "F", "F", "G", "H", "A"],
-        ["F", "F", "F", "F", "G", "G", "H", "H"],
-        ["F", "F", "G", "G", "G", "H", "H", "H"],
-      ],
+      numPerRow: 2,
+      puzzle: puzzle,
       puzzleState: puzzleState,
       errors: Utils.empty2DArray(size, false),
       animating: Utils.empty2DArray(size, false),
@@ -39,6 +48,7 @@ class Puzzle extends React.Component {
       completed: false,
     };
     this.initialState = this.state;
+    this.circleRef = React.createRef();
   }
 
   /*componentDidMount() {
@@ -73,16 +83,7 @@ class Puzzle extends React.Component {
               : Constants.emptyState;
         }
 
-        // const newState = state.puzzleState[i][j]=newVal;
-        var newState = state.puzzleState.map((row, x) => {
-          return row.map((val, y) => {
-            if (i === x && j === y) {
-              return newVal;
-            } else {
-              return val;
-            }
-          });
-        });
+        var newState = Utils.setPuzzleState(state.puzzleState, i, j, newVal);
 
         var animating = Utils.empty2DArray(state.size, false);
 
@@ -158,7 +159,7 @@ class Puzzle extends React.Component {
         this.animationTimer = null;
       }
 
-      const result = Utils.markNeighbors(i, j, state.puzzleState, state.puzzle);
+      const result = Utils.markNeighbors(i, j, state.puzzleState, state.puzzle, state.numPerRow);
 
       return {
         animatingMarkedLocation: { i: i, j: j },
@@ -179,7 +180,7 @@ class Puzzle extends React.Component {
 
   checkForErrors() {
     this.setState((state) => {
-      var result = Utils.checkPuzzle(state.puzzle, state.puzzleState);
+      var result = Utils.checkPuzzle(state.puzzle, state.puzzleState, state.numPerRow);
 
       return {
         errors: result.errors,
@@ -225,7 +226,7 @@ class Puzzle extends React.Component {
 
   solvePuzzle() {
     this.setState((state) => {
-      var solver = new PuzzleSolver(state.puzzle);
+      var solver = new PuzzleSolver(state.puzzle, state.numPerRow);
       return {
         history: solver.solve().history,
         historyIndex: 0,
@@ -284,14 +285,8 @@ class Puzzle extends React.Component {
                     [cell + "-color"]: true,
                     error: this.state.errors[i][j],
                   });
-                  var icon =
-                    val === Constants.onState ? (
-                      <GiSittingDog />
-                    ) : Constants.markedState && this.state.errors[i][j] ? (
-                      "!"
-                    ) : (
-                      ""
-                    );
+                  var dog = val === Constants.onState ? <img src={DogSVG} alt="Dog" /> : "";
+                  var icon = this.state.errors[i][j] ? <IoAlertCircleSharp /> : "";
                   return (
                     <div
                       key={j}
@@ -299,7 +294,10 @@ class Puzzle extends React.Component {
                       onClick={(e) => this.handleClick(e, i, j)}
                       onContextMenu={(e) => this.handleRightClick(e, i, j)}
                     >
-                      <div className="content">{icon}</div>
+                      <div className="content">
+                        {dog}
+                        {icon}
+                      </div>
                     </div>
                   );
                 })}
