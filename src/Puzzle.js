@@ -8,6 +8,7 @@ import {
   IoArrowRedo,
   IoPlaySharp,
   IoAlertCircleSharp,
+  IoGitBranch,
 } from "react-icons/io5";
 import DogSVG from "./images/dog.svg";
 import * as Constants from "./constants.js";
@@ -46,6 +47,8 @@ class Puzzle extends React.Component {
       historyIndex: 0,
       animatingMarkedLocation: false,
       completed: false,
+      guessHistory: [Utils.empty2DArray(size, false)],
+      guessIndexes: [],
     };
     this.initialState = this.state;
     this.circleRef = React.createRef();
@@ -139,12 +142,20 @@ class Puzzle extends React.Component {
   saveHistory() {
     this.setState((state) => {
       var history = state.history;
+      var guessHistory = state.guessHistory;
       if (state.historyIndex + 1 < history.length) {
         history = history.slice(0, state.historyIndex + 1);
+        guessHistory = guessHistory.slice(0, state.historyIndex + 1);
       }
+      const lastHistory = history[history.length - 1];
+      const lastGuess = guessHistory[history.length - 1];
+      const guessIndex = this.state.guessIndexes.length;
       return {
         history: history.concat([state.puzzleState]),
         historyIndex: history.length,
+        guessHistory: guessHistory.concat([
+          Utils.guesses(lastHistory, state.puzzleState, lastGuess, guessIndex),
+        ]),
       };
     });
   }
@@ -224,6 +235,14 @@ class Puzzle extends React.Component {
     this.setState(this.initialState);
   }
 
+  branch() {
+    this.setState((state) => {
+      return {
+        guessIndexes: this.state.guessIndexes.concat(state.historyIndex),
+      };
+    });
+  }
+
   solvePuzzle() {
     this.setState((state) => {
       var solver = new PuzzleSolver(state.puzzle, state.numPerRow);
@@ -274,6 +293,7 @@ class Puzzle extends React.Component {
               <div key={i} className="row">
                 {row.map((cell, j) => {
                   const val = this.state.puzzleState[i][j];
+                  const guess = this.state.guessHistory[this.state.historyIndex][i][j];
                   var cellClasses = classNames({
                     cell: true,
                     topBorder: i === 0 || this.state.puzzle[i - 1][j] !== cell,
@@ -284,6 +304,8 @@ class Puzzle extends React.Component {
                     newlyMarked: this.state.animating[i][j],
                     [cell + "-color"]: true,
                     error: this.state.errors[i][j],
+                    guess: !!guess,
+                    ["guess-" + guess]: !!guess,
                   });
                   var dog = val === Constants.onState ? <img src={DogSVG} alt="Dog" /> : "";
                   var icon = this.state.errors[i][j] ? <IoAlertCircleSharp /> : "";
@@ -311,6 +333,10 @@ class Puzzle extends React.Component {
           </button>
           <button onClick={(e) => this.solvePuzzle()}>
             <IoPlaySharp />
+          </button>
+          <button onClick={(e) => this.branch()}>
+            <IoGitBranch />
+            <small className="branchSubscript">{this.state.guessIndexes.length}</small>
           </button>
           <button onClick={(e) => this.undo()} disabled={this.state.historyIndex < 1}>
             <IoArrowUndo />

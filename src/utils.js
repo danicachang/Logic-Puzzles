@@ -166,3 +166,11 @@ export function computeInfo(puzzleState, puzzle) {
   });
   return data;
 }
+
+export function guesses(prevState, state, prevGuess, value) {
+  return prevState.map((row, x) => {
+    return row.map((val, y) => {
+      return val !== state[x][y] ? value : prevGuess[x][y];
+    });
+  });
+}

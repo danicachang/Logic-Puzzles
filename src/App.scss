@@ -1,18 +1,21 @@
-*, ::before, ::after {
+*,
+::before,
+::after {
   box-sizing: border-box;
 }
 
 body {
-	background: grey;
+  background: grey;
 }
 
 button {
-	background: none;
-	border: none;
-	cursor: pointer;
-	color: white;
-	font-size: 5rem;
-	&[disabled] {
-		opacity: .3;
-	}
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-size: 5rem;
+  position: relative;
+  &[disabled] {
+    opacity: 0.3;
+  }
 }
