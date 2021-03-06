@@ -149,7 +149,8 @@ class Puzzle extends React.Component {
       }
       const lastHistory = history[history.length - 1];
       const lastGuess = guessHistory[history.length - 1];
-      const guessIndex = this.state.guessIndexes.length;
+      var guessIndex = this.state.guessIndexes.length;
+      guessIndex = guessIndex === 0 ? false : guessIndex;
       return {
         history: history.concat([state.puzzleState]),
         historyIndex: history.length,
@@ -246,8 +247,10 @@ class Puzzle extends React.Component {
   solvePuzzle() {
     this.setState((state) => {
       var solver = new PuzzleSolver(state.puzzle, state.numPerRow);
+      var result = solver.solve();
       return {
-        history: solver.solve().history,
+        history: result.history,
+        guessHistory: result.guessHistory,
         historyIndex: 0,
       };
     });
