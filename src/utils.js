@@ -123,7 +123,7 @@ export function markNeighbors(i, j, puzzleState, puzzle, numPerRow) {
 
 export function computeInfo(puzzleState, puzzle) {
   var size = puzzle.length;
-  var data = {
+  var info = {
     rows: new Array(size),
     columns: new Array(size),
     colors: new Array(size),
@@ -132,17 +132,17 @@ export function computeInfo(puzzleState, puzzle) {
   };
 
   for (let i = 0; i < size; i++) {
-    data.rows[i] = {
+    info.rows[i] = {
       [Constants.emptyState]: [],
       [Constants.markedState]: [],
       [Constants.onState]: [],
     };
-    data.columns[i] = {
+    info.columns[i] = {
       [Constants.emptyState]: [],
       [Constants.markedState]: [],
       [Constants.onState]: [],
     };
-    data.colors[i] = {
+    info.colors[i] = {
       [Constants.emptyState]: [],
       [Constants.markedState]: [],
       [Constants.onState]: [],
@@ -153,18 +153,18 @@ export function computeInfo(puzzleState, puzzle) {
     row.forEach((val, y) => {
       const letter = puzzle[x][y];
       const location = { i: x, j: y };
-      data.rows[x][val].push(location);
-      data.columns[y][val].push(location);
-      data.colors[alphaToNum(letter)][val].push(location);
+      info.rows[x][val].push(location);
+      info.columns[y][val].push(location);
+      info.colors[alphaToNum(letter)][val].push(location);
 
       if (val === Constants.onState) {
-        data.onLocations.push(location);
+        info.onLocations.push(location);
       } else if (val === Constants.emptyState) {
-        data.emptyLocations.push(location);
+        info.emptyLocations.push(location);
       }
     });
   });
-  return data;
+  return info;
 }
 
 export function guesses(prevState, state, prevGuess, value) {

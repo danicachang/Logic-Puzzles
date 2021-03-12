@@ -15,6 +15,7 @@ class PuzzleSolver {
     this.findMultipleSolutions = !!options.findMultipleSolutions;
     this.solutions = [];
     this.lastGuessLoc = { i: -1, j: -1 };
+    this.recentlyGuessed = Utils.empty2DArray(this.size, false);
   }
 
   solve(maxLoops = 50) {
@@ -141,7 +142,7 @@ class PuzzleSolver {
     return change;
   }
 
-  tryGuesses(puzzleStateInfo) {
+  tryGuesses(puzzleStateInfo, solveLoops = 1) {
     if (this.guessIndexes.length >= this.maxGuessDepth) return false;
 
     this.guessIndexes.push(this.history.length);
@@ -150,7 +151,7 @@ class PuzzleSolver {
     var originalHistoryIndex = this.history.length - 1;
 
     // Reorder emptyLocations to start with the next one from where we left off
-    const index = puzzleStateInfo.emptyLocations.findIndex((loc) => {
+    /* const index = puzzleStateInfo.emptyLocations.findIndex((loc) => {
       return (
         (loc.i === this.lastGuessLoc.i && loc.j >= this.lastGuessLoc.j) ||
         loc.i > this.lastGuessLoc.i
@@ -158,14 +159,16 @@ class PuzzleSolver {
     });
     var emptyLocations = puzzleStateInfo.emptyLocations
       .slice(index)
-      .concat(puzzleStateInfo.emptyLocations.slice(0, index));
-    const result = emptyLocations.some((loc) => {
-      this.lastGuessLoc = loc;
+      .concat(puzzleStateInfo.emptyLocations.slice(0, index));*/
+    this.reorderEmptyLocations(puzzleStateInfo);
+    const result = puzzleStateInfo.emptyLocations.some((loc) => {
+      this.recentlyGuessed[loc.i][loc.j] = true;
+      //this.lastGuessLoc = loc;
       if (loc.i === 1 && loc.j === 0) {
         console.log("break");
       }
       this.setPuzzleState(loc.i, loc.j, Constants.onState);
-      var result = this.solve(1);
+      var result = this.solve(solveLoops);
       if (result.error || (result.isSolved && this.findMultipleSolutions)) {
         this.resetState(originalHistoryIndex);
         this.guessIndexes.pop();
@@ -182,6 +185,49 @@ class PuzzleSolver {
 
     this.guessIndexes.pop();
     return result;
+  }
+
+  reorderEmptyLocations(info) {
+    var self = this;
+    var emptyLocationsInColor = this.puzzle.map((row, x) => {
+      return row.map((color, y) => {
+        return info.colors[Utils.alphaToNum(color)][Constants.emptyState].length;
+      });
+    });
+
+    info.emptyLocations.sort((a, b) => {
+      var recentlyA = this.recentlyGuessed[a.i][a.j] ? 100 : 0;
+      var recentlyB = this.recentlyGuessed[b.i][b.j] ? 100 : 0;
+      var countA = emptyLocationsInColor[a.i][a.j] + recentlyA;
+      var countB = emptyLocationsInColor[b.i][b.j] + recentlyB;
+
+      if (countA < 7 || countB < 7) {
+        return countA - countB;
+      }
+
+      countA =
+        Math.min(
+          emptyLocationsInColorCheckBounds(a.i - 1, a.j),
+          emptyLocationsInColorCheckBounds(a.i + 1, a.j),
+          emptyLocationsInColorCheckBounds(a.i, a.j - 1),
+          emptyLocationsInColorCheckBounds(a.i, a.j + 1)
+        ) + recentlyA;
+
+      countB =
+        Math.min(
+          emptyLocationsInColorCheckBounds(b.i - 1, b.j),
+          emptyLocationsInColorCheckBounds(b.i + 1, b.j),
+          emptyLocationsInColorCheckBounds(b.i, b.j - 1),
+          emptyLocationsInColorCheckBounds(b.i, b.j + 1)
+        ) + recentlyB;
+
+      return countA - countB;
+    });
+
+    function emptyLocationsInColorCheckBounds(i, j, outOfBoundsValue = 1000) {
+      if (i < 0 || j < 0 || i >= self.size || j >= self.size) return outOfBoundsValue;
+      return emptyLocationsInColor[i][j];
+    }
   }
 
   setPuzzleState(i, j, val, saveHistory = true) {
@@ -202,6 +248,28 @@ class PuzzleSolver {
     var guessIndex = this.guessIndexes.length;
     guessIndex = guessIndex === 0 ? false : guessIndex;
     this.guessHistory.push(Utils.guesses(lastHistory, newHistory, lastGuess, guessIndex));
+    if (!guessIndex) {
+      var diff = lastHistory.map((row, x) => {
+        return row.map((val, y) => {
+          return val !== newHistory[x][y] ? Constants.onState : Constants.emptyState;
+        });
+      });
+      var info = Utils.computeInfo(diff, this.puzzle);
+      this.recentlyGuessed = this.recentlyGuessed.map((row, x) => {
+        return row.map((val, y) => {
+          if (!val) return false;
+          var letter = this.puzzle[x][y];
+          if (
+            info.rows[x][Constants.onState].length ||
+            info.columns[y][Constants.onState].length ||
+            info.colors[Utils.alphaToNum(letter)][Constants.onState].length
+          ) {
+            return false;
+          }
+          return true;
+        });
+      });
+    }
 
     this.history.push(newHistory);
   }
