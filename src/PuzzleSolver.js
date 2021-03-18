@@ -82,10 +82,11 @@ class PuzzleSolver {
         const numOnState = value[Constants.onState].length;
         const numEmptyState = value[Constants.emptyState].length;
         if (numOnState < this.numPerRow && numOnState + numEmptyState === this.numPerRow) {
-          value[Constants.emptyState].forEach((loc) => {
-            this.setPuzzleState(loc.i, loc.j, Constants.onState);
-          });
           console.log("onIfLastEmpty", true);
+          value[Constants.emptyState].forEach((loc) => {
+            this.setPuzzleState(loc.i, loc.j, Constants.onState, false);
+          });
+          this.saveHistory(this.puzzleState);
           return true;
         }
       }
@@ -142,7 +143,7 @@ class PuzzleSolver {
     return change;
   }
 
-  tryGuesses(puzzleStateInfo, solveLoops = 1) {
+  tryGuesses(puzzleStateInfo, solveLoops = 100) {
     if (this.guessIndexes.length >= this.maxGuessDepth) return false;
 
     this.guessIndexes.push(this.history.length);
@@ -163,23 +164,31 @@ class PuzzleSolver {
     this.reorderEmptyLocations(puzzleStateInfo);
     const result = puzzleStateInfo.emptyLocations.some((loc) => {
       this.recentlyGuessed[loc.i][loc.j] = true;
-      //this.lastGuessLoc = loc;
-      if (loc.i === 1 && loc.j === 0) {
-        console.log("break");
+
+      var states = [Constants.onState];
+      var color = Utils.alphaToNum(this.puzzle[loc.i][loc.j]);
+      if (this.numPerRow > 1 && puzzleStateInfo.colors[color][Constants.emptyState].length <= 5) {
+        states.push(Constants.markedState);
       }
-      this.setPuzzleState(loc.i, loc.j, Constants.onState);
-      var result = this.solve(solveLoops);
-      if (result.error || (result.isSolved && this.findMultipleSolutions)) {
+
+      for (let a = 0; a < states.length; a++) {
+        const state = states[a];
+
+        this.setPuzzleState(loc.i, loc.j, state);
+        var result = this.solve(solveLoops);
+        if (result.error || (result.isSolved && this.findMultipleSolutions)) {
+          this.resetState(originalHistoryIndex);
+          this.guessIndexes.pop();
+          const newState = state === Constants.onState ? Constants.markedState : Constants.onState;
+          this.setPuzzleState(loc.i, loc.j, newState);
+          return true;
+        }
+        if (result.isSolved) {
+          return true;
+        }
+        console.log("inconclusive");
         this.resetState(originalHistoryIndex);
-        this.guessIndexes.pop();
-        this.setPuzzleState(loc.i, loc.j, Constants.markedState);
-        return true;
       }
-      if (result.isSolved) {
-        return true;
-      }
-      console.log("inconclusive");
-      this.resetState(originalHistoryIndex);
       return false;
     });
 
