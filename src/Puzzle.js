@@ -23,16 +23,16 @@ class Puzzle extends React.Component {
     super(props);
 
     const puzzle = [
-      ["A", "A", "A", "B", "B", "B", "B", "B", "B", "B"],
-      ["A", "A", "A", "C", "C", "D", "D", "D", "D", "B"],
-      ["E", "E", "E", "C", "C", "F", "D", "D", "D", "B"],
-      ["E", "E", "C", "C", "C", "F", "D", "D", "D", "G"],
-      ["E", "E", "C", "C", "C", "F", "F", "G", "G", "G"],
-      ["E", "E", "C", "H", "C", "F", "F", "F", "G", "G"],
-      ["I", "I", "H", "H", "C", "C", "C", "J", "J", "G"],
-      ["I", "I", "H", "H", "H", "C", "C", "J", "J", "J"],
-      ["I", "I", "I", "H", "H", "H", "H", "J", "J", "J"],
-      ["I", "I", "I", "H", "H", "H", "H", "J", "J", "J"],
+      ["A", "A", "A", "A", "B", "B", "C", "C", "C", "C"],
+      ["A", "D", "A", "A", "B", "B", "B", "C", "B", "B"],
+      ["A", "D", "D", "B", "B", "B", "B", "B", "B", "B"],
+      ["D", "D", "D", "D", "B", "E", "E", "E", "E", "B"],
+      ["D", "D", "B", "B", "B", "B", "B", "B", "E", "B"],
+      ["F", "F", "F", "F", "G", "G", "H", "H", "H", "H"],
+      ["F", "I", "F", "F", "G", "G", "G", "H", "G", "G"],
+      ["F", "I", "I", "G", "G", "G", "G", "G", "G", "G"],
+      ["I", "I", "I", "I", "G", "J", "J", "J", "J", "G"],
+      ["I", "I", "G", "G", "G", "G", "G", "G", "J", "G"],
     ];
     const size = puzzle.length;
     const puzzleState = Utils.empty2DArray(size, Constants.emptyState);

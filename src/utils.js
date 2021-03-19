@@ -51,6 +51,31 @@ export function checkPuzzle(puzzle, puzzleState, numPerRow, info) {
           errorCount[0]++;
         });
       }
+
+      if (typeOfCriteria === "colors" && numEmptyState <= 4 && numPerRow - numOnState === 2) {
+        var isPossible = false;
+        for (let a = 0; a < numEmptyState; a++) {
+          const loc1 = value[Constants.emptyState][a];
+          for (let b = a + 1; b < numEmptyState; b++) {
+            const loc2 = value[Constants.emptyState][b];
+            if (
+              loc1.i > loc2.i + 1 ||
+              loc1.i < loc2.i - 1 ||
+              loc1.j > loc2.j + 1 ||
+              loc1.j < loc2.j - 1
+            ) {
+              isPossible = true;
+              break;
+            }
+          }
+        }
+        if (!isPossible) {
+          value[Constants.markedState].forEach((loc) => {
+            errors[loc.i][loc.j] = true;
+            errorCount[0]++;
+          });
+        }
+      }
     }
   }
 

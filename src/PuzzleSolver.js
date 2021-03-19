@@ -11,7 +11,6 @@ class PuzzleSolver {
     this.guessHistory = [Utils.empty2DArray(this.size, false)];
     this.isSolved = false;
     this.guessIndexes = [];
-    this.maxGuessDepth = options.maxGuessDepth || 1;
     this.findMultipleSolutions = !!options.findMultipleSolutions;
     this.solutions = [];
     this.lastGuessLoc = { i: -1, j: -1 };
@@ -143,24 +142,14 @@ class PuzzleSolver {
     return change;
   }
 
-  tryGuesses(puzzleStateInfo, solveLoops = 100) {
-    if (this.guessIndexes.length >= this.maxGuessDepth) return false;
+  tryGuesses(puzzleStateInfo, maxGuessDepth = 1, solveLoops = 100) {
+    if (this.guessIndexes.length >= maxGuessDepth) return false;
 
     this.guessIndexes.push(this.history.length);
     console.log("tryGuesses", this.guessIndexes);
 
     var originalHistoryIndex = this.history.length - 1;
 
-    // Reorder emptyLocations to start with the next one from where we left off
-    /* const index = puzzleStateInfo.emptyLocations.findIndex((loc) => {
-      return (
-        (loc.i === this.lastGuessLoc.i && loc.j >= this.lastGuessLoc.j) ||
-        loc.i > this.lastGuessLoc.i
-      );
-    });
-    var emptyLocations = puzzleStateInfo.emptyLocations
-      .slice(index)
-      .concat(puzzleStateInfo.emptyLocations.slice(0, index));*/
     this.reorderEmptyLocations(puzzleStateInfo);
     const result = puzzleStateInfo.emptyLocations.some((loc) => {
       this.recentlyGuessed[loc.i][loc.j] = true;
@@ -187,6 +176,15 @@ class PuzzleSolver {
           return true;
         }
         console.log("inconclusive");
+        /*changeCount[loc.i][loc.j] = this.guessHistory[this.guessHistory.length - 1].reduce(
+          (count, row) => {
+            var sum = row.reduce((rowCount, val) => {
+              return val ? rowCount + 1 : rowCount;
+            }, 0);
+            return count + sum;
+          },
+          0
+        );*/
         this.resetState(originalHistoryIndex);
       }
       return false;
@@ -198,17 +196,21 @@ class PuzzleSolver {
 
   reorderEmptyLocations(info) {
     var self = this;
-    var emptyLocationsInColor = this.puzzle.map((row, x) => {
+    var emptyLocationsInRowColColor = this.puzzle.map((row, x) => {
       return row.map((color, y) => {
-        return info.colors[Utils.alphaToNum(color)][Constants.emptyState].length;
+        return Math.min(
+          info.rows[x][Constants.emptyState].length,
+          info.columns[y][Constants.emptyState].length,
+          info.colors[Utils.alphaToNum(color)][Constants.emptyState].length
+        );
       });
     });
 
     info.emptyLocations.sort((a, b) => {
       var recentlyA = this.recentlyGuessed[a.i][a.j] ? 100 : 0;
       var recentlyB = this.recentlyGuessed[b.i][b.j] ? 100 : 0;
-      var countA = emptyLocationsInColor[a.i][a.j] + recentlyA;
-      var countB = emptyLocationsInColor[b.i][b.j] + recentlyB;
+      var countA = emptyLocationsInRowColColor[a.i][a.j] + recentlyA;
+      var countB = emptyLocationsInRowColColor[b.i][b.j] + recentlyB;
 
       if (countA < 7 || countB < 7) {
         return countA - countB;
@@ -235,7 +237,7 @@ class PuzzleSolver {
 
     function emptyLocationsInColorCheckBounds(i, j, outOfBoundsValue = 1000) {
       if (i < 0 || j < 0 || i >= self.size || j >= self.size) return outOfBoundsValue;
-      return emptyLocationsInColor[i][j];
+      return emptyLocationsInRowColColor[i][j];
     }
   }
 
@@ -257,7 +259,9 @@ class PuzzleSolver {
     var guessIndex = this.guessIndexes.length;
     guessIndex = guessIndex === 0 ? false : guessIndex;
     this.guessHistory.push(Utils.guesses(lastHistory, newHistory, lastGuess, guessIndex));
-    if (!guessIndex) {
+
+    // remove recently guessed that are near a change
+    /*if (!guessIndex) {
       var diff = lastHistory.map((row, x) => {
         return row.map((val, y) => {
           return val !== newHistory[x][y] ? Constants.onState : Constants.emptyState;
@@ -278,7 +282,7 @@ class PuzzleSolver {
           return true;
         });
       });
-    }
+    }*/
 
     this.history.push(newHistory);
   }
