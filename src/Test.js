@@ -23,7 +23,7 @@ export default function Test() {
         console.log(
           name,
           "\t",
-          result.isSolved,
+          result.solutions.length,
           elapsedTime.toFixed(6) + "s",
           result.history.length
         );

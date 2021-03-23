@@ -33,6 +33,7 @@ class PuzzleSolver {
           history: this.history,
           guessHistory: this.guessHistory,
           isSolved: false,
+          solutions: this.solutions,
           error: true,
         };
       }
@@ -44,6 +45,7 @@ class PuzzleSolver {
           history: this.history,
           guessHistory: this.guessHistory,
           isSolved: true,
+          solutions: this.solutions,
           error: false,
         };
       }
@@ -68,6 +70,7 @@ class PuzzleSolver {
       history: this.history,
       guessHistory: this.guessHistory,
       isSolved: false,
+      solutions: this.solutions,
       error: false,
     };
   }

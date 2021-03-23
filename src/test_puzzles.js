@@ -1,6 +1,7 @@
+/* spell-checker: disable */
 const test_puzzles = {
   1: {
-    "5x5 - Easy": [["ABBCC"], ["AABDD"], ["AADDD"], ["EEEDD"], ["EEEDD"]],
+    "5x5 - Easy  ": [["ABBCC"], ["AABDD"], ["AADDD"], ["EEEDD"], ["EEEDD"]],
     "6x6 - Medium": [["AAAAAB"], ["AABBBB"], ["AAAABC"], ["DDDACC"], ["DEECCC"], ["DFFFFC"]],
     "8x8 - Medium": [
       ["AAABCDDC"],
@@ -64,5 +65,5 @@ const test_puzzles = {
     ],
   },
 };
-
+/* spell-checker: enabled */
 export default test_puzzles;
