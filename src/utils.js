@@ -10,6 +10,23 @@ export function alphaToNum(letter) {
   return parseInt(letter, 36) - 10;
 }
 
+export function stringArrayTo2DArray(stringArray) {
+  return stringArray.map((row) => {
+    return row.toString().split("");
+  });
+}
+
+export function rotateClockwise(puzzle) {
+  const size = puzzle.length;
+  var rotated = empty2DArray(size, null);
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      rotated[i][j] = puzzle[size - 1 - j][i];
+    }
+  }
+  return rotated;
+}
+
 export function setPuzzleState(puzzleState, i, j, newVal) {
   // non-modifying version of state.puzzleState[i][j]=newVal;
   return puzzleState.map((row, x) => {

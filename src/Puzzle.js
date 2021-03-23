@@ -22,18 +22,18 @@ class Puzzle extends React.Component {
   constructor(props) {
     super(props);
 
-    const puzzle = [
-      ["A", "A", "A", "A", "B", "B", "C", "C", "C", "C"],
-      ["A", "D", "A", "A", "B", "B", "B", "C", "B", "B"],
-      ["A", "D", "D", "B", "B", "B", "B", "B", "B", "B"],
-      ["D", "D", "D", "D", "B", "E", "E", "E", "E", "B"],
-      ["D", "D", "B", "B", "B", "B", "B", "B", "E", "B"],
-      ["F", "F", "F", "F", "G", "G", "H", "H", "H", "H"],
-      ["F", "I", "F", "F", "G", "G", "G", "H", "G", "G"],
-      ["F", "I", "I", "G", "G", "G", "G", "G", "G", "G"],
-      ["I", "I", "I", "I", "G", "J", "J", "J", "J", "G"],
-      ["I", "I", "G", "G", "G", "G", "G", "G", "J", "G"],
-    ];
+    const puzzle = Utils.stringArrayTo2DArray([
+      ["AABBBBBCCC"],
+      ["AAABCBCCCD"],
+      ["AEEBCCCCCD"],
+      ["AECCCFFCCD"],
+      ["EEEEEFCCDD"],
+      ["GEHEEFFCCC"],
+      ["GEHHHFFCCI"],
+      ["GEHJHFHCCI"],
+      ["GGJJHHHIII"],
+      ["GGJJJHHHHH"],
+    ]);
     const size = puzzle.length;
     const puzzleState = Utils.empty2DArray(size, Constants.emptyState);
     this.state = {
