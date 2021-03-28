@@ -153,7 +153,7 @@ class PuzzleSolver {
 
     var originalHistoryIndex = this.history.length - 1;
 
-    //this.reorderEmptyLocations(puzzleStateInfo);
+    this.reorderEmptyLocations(puzzleStateInfo);
     const result = puzzleStateInfo.emptyLocations.some((loc) => {
       this.recentlyGuessed[loc.i][loc.j] = true;
 

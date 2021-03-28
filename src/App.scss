@@ -15,10 +15,25 @@ button {
   color: white;
   font-size: 5rem;
   position: relative;
+  opacity: 0.8;
+  &:hover {
+    opacity: 1;
+  }
   &[disabled] {
     opacity: 0.3;
   }
   &:focus {
     outline: none;
+  }
+}
+
+.menu {
+  list-style: none;
+  padding: 0.5rem 0;
+  margin: 0;
+  li {
+    padding: 0.5rem;
+    text-align: center;
+    cursor: pointer;
   }
 }

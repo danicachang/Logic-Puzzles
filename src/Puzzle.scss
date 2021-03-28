@@ -243,3 +243,14 @@
   height: 0;
   transition: all 0.7s ease-in; /* value must match setTimeout in js code */
 }
+
+.popup-content {
+  background: black;
+  color: white;
+  border: none;
+}
+
+.popup-arrow {
+  color: black;
+  stroke-width: 1px;
+}

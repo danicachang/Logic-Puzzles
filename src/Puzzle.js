@@ -1,4 +1,6 @@
 import React from "react";
+import Popup from "reactjs-popup";
+import "reactjs-popup/dist/index.css";
 import classNames from "classnames/bind";
 import { CSSTransition } from "react-transition-group";
 import { FaTrophy } from "react-icons/fa";
@@ -244,6 +246,21 @@ class Puzzle extends React.Component {
     });
   }
 
+  undoBranch() {
+    this.setState((state) => {
+      const guessIndex = this.state.guessIndexes[this.state.guessIndexes.length - 1];
+      const newState = state.history[guessIndex];
+      return {
+        historyIndex: guessIndex,
+        puzzleState: newState,
+        animatingMarkedLocation: false,
+        animating: Utils.empty2DArray(state.size, false),
+        guessIndexes: this.state.guessIndexes.slice(0, -1),
+      };
+    });
+    this.checkForErrors();
+  }
+
   solvePuzzle() {
     this.setState((state) => {
       var solver = new PuzzleSolver(state.puzzle, state.numPerRow);
@@ -337,10 +354,41 @@ class Puzzle extends React.Component {
           <button onClick={(e) => this.solvePuzzle()}>
             <IoPlaySharp />
           </button>
-          <button onClick={(e) => this.branch()}>
-            <IoGitBranch />
-            <small className="branchSubscript">{this.state.guessIndexes.length}</small>
-          </button>
+          <Popup
+            trigger={
+              <button>
+                <IoGitBranch />
+                <small className="branchSubscript">{this.state.guessIndexes.length}</small>
+              </button>
+            }
+            position="top center"
+            closeOnDocumentClick
+          >
+            {(close) => (
+              <div>
+                <ul className="menu">
+                  <li
+                    onClick={(e) => {
+                      this.branch();
+                      close();
+                    }}
+                  >
+                    <IoGitBranch /> Start New Guess
+                  </li>
+                  {this.state.guessIndexes.length > 0 && (
+                    <li
+                      onClick={(e) => {
+                        this.undoBranch();
+                        close();
+                      }}
+                    >
+                      <IoArrowUndo /> Undo Last Guess
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </Popup>
           <button onClick={(e) => this.undo()} disabled={this.state.historyIndex < 1}>
             <IoArrowUndo />
           </button>
