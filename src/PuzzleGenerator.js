@@ -46,8 +46,9 @@ class PuzzleGenerator {
   growToLocations(growLocations) {
     while (growLocations.length > 0 && this.count < 1000) {
       //console.log(this.count, growLocations.slice());
+      const randomIndex =
+        this.count < this.size ? this.count : Utils.getRandomInt(growLocations.length);
       this.count++;
-      const randomIndex = Utils.getRandomInt(growLocations.length);
       const loc = growLocations[randomIndex];
       const value = this.puzzle[loc.i][loc.j];
       var directions = Utils.shuffle([
@@ -157,26 +158,31 @@ class PuzzleGenerator {
 
   isContiguous(puzzle, color) {
     var areaCount = 0;
+    var maxSize = 0;
     puzzle.forEach((row, i) => {
       row.forEach((value, j) => {
-        if (this.markContiguous(i, j, puzzle, color)) {
+        var size = this.markContiguous(i, j, puzzle, color);
+        maxSize = Math.max(size, maxSize);
+        if (size > 0) {
           areaCount++;
         }
       });
     });
-    return areaCount === 1;
+    return areaCount === 1 && maxSize > 1;
   }
 
   markContiguous(i, j, puzzle, color) {
-    if (!Utils.withinBounds(i, j, this.size)) return false;
-    if (puzzle[i][j] !== color) return false;
+    if (!Utils.withinBounds(i, j, this.size)) return 0;
+    if (puzzle[i][j] !== color) return 0;
 
     puzzle[i][j] = false;
-    this.markContiguous(i - 1, j, puzzle, color);
-    this.markContiguous(i, j - 1, puzzle, color);
-    this.markContiguous(i + 1, j, puzzle, color);
-    this.markContiguous(i, j + 1, puzzle, color);
-    return true;
+    var sum =
+      1 +
+      this.markContiguous(i - 1, j, puzzle, color) +
+      this.markContiguous(i, j - 1, puzzle, color) +
+      this.markContiguous(i + 1, j, puzzle, color) +
+      this.markContiguous(i, j + 1, puzzle, color);
+    return sum;
   }
 
   /*createSolution() {
