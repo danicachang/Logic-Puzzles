@@ -12,6 +12,7 @@ class PuzzleSolver {
     this.isSolved = false;
     this.guessIndexes = [];
     this.findMultipleSolutions = !!options.findMultipleSolutions;
+    this.ignoreColors = !!options.ignoreColors;
     this.solutions = [];
     this.lastGuessLoc = { i: -1, j: -1 };
     this.recentlyGuessed = Utils.empty2DArray(this.size, false);
@@ -25,7 +26,8 @@ class PuzzleSolver {
         this.puzzle,
         this.puzzleState,
         this.numPerRow,
-        puzzleStateInfo
+        puzzleStateInfo,
+        this.ignoreColors
       );
       if (errors.errorCount > 0) {
         //console.log("Error");
@@ -79,6 +81,7 @@ class PuzzleSolver {
     for (const [typeOfCriteria, valueOfCriteria] of Object.entries(puzzleStateInfo)) {
       if (typeOfCriteria === "onLocations") continue;
       if (typeOfCriteria === "emptyLocations") continue;
+      if (this.ignoreColors && typeOfCriteria === "colors") continue;
       for (let i = 0; i < valueOfCriteria.length; i++) {
         const value = valueOfCriteria[i];
         const numOnState = value[Constants.onState].length;
@@ -98,6 +101,8 @@ class PuzzleSolver {
   }
 
   markIfColorInUniqueRowOrColumn(puzzleStateInfo) {
+    if (this.ignoreColors) return false;
+
     var rowsMustBe = Array(this.size).fill(-1);
     var colsMustBe = Array(this.size).fill(-1);
     puzzleStateInfo.colors.forEach((value, puzzleVal) => {
@@ -153,7 +158,8 @@ class PuzzleSolver {
 
     var originalHistoryIndex = this.history.length - 1;
 
-    this.reorderEmptyLocations(puzzleStateInfo);
+    //this.reorderEmptyLocations(puzzleStateInfo);
+    if (this.ignoreColors) Utils.shuffle(puzzleStateInfo.emptyLocations);
     const result = puzzleStateInfo.emptyLocations.some((loc) => {
       this.recentlyGuessed[loc.i][loc.j] = true;
 
@@ -239,7 +245,14 @@ class PuzzleSolver {
     this.puzzleState = Utils.setPuzzleState(this.puzzleState, i, j, val);
 
     if (val === Constants.onState) {
-      var results = Utils.markNeighbors(i, j, this.puzzleState, this.puzzle, this.numPerRow);
+      var results = Utils.markNeighbors(
+        i,
+        j,
+        this.puzzleState,
+        this.puzzle,
+        this.numPerRow,
+        this.ignoreColors
+      );
       this.puzzleState = results.puzzleState;
     }
 

@@ -6,8 +6,44 @@ export function empty2DArray(size, value) {
     .map((row) => new Array(size).fill(value));
 }
 
+export function clone2D(array2d) {
+  return array2d.map((row, x) => {
+    return row.map((val) => val);
+  });
+}
+
 export function alphaToNum(letter) {
   return parseInt(letter, 36) - 10;
+}
+export function numToAlpha(num) {
+  return String.fromCharCode(97 + num).toUpperCase();
+}
+
+export function getRandomInt(max) {
+  return Math.floor(Math.random() * Math.floor(max));
+}
+
+export function withinBounds(i, j, size) {
+  return i >= 0 && j >= 0 && i < size && j < size;
+}
+
+export function shuffle(array) {
+  var m = array.length,
+    t,
+    i;
+
+  // While there remain elements to shuffle…
+  while (m) {
+    // Pick a remaining element…
+    i = Math.floor(Math.random() * m--);
+
+    // And swap it with the current element.
+    t = array[m];
+    array[m] = array[i];
+    array[i] = t;
+  }
+
+  return array;
 }
 
 export function stringArrayTo2DArray(stringArray) {
@@ -40,7 +76,7 @@ export function setPuzzleState(puzzleState, i, j, newVal) {
   });
 }
 
-export function checkPuzzle(puzzle, puzzleState, numPerRow, info) {
+export function checkPuzzle(puzzle, puzzleState, numPerRow, info, ignoreColors = false) {
   if (!info) {
     info = computeInfo(puzzleState, puzzle);
   }
@@ -52,6 +88,7 @@ export function checkPuzzle(puzzle, puzzleState, numPerRow, info) {
   for (const [typeOfCriteria, valueOfCriteria] of Object.entries(info)) {
     if (typeOfCriteria === "onLocations") continue;
     if (typeOfCriteria === "emptyLocations") continue;
+    if (ignoreColors && typeOfCriteria === "colors") continue;
     for (let i = 0; i < valueOfCriteria.length; i++) {
       const value = valueOfCriteria[i];
       const numOnState = value[Constants.onState].length;
@@ -69,7 +106,12 @@ export function checkPuzzle(puzzle, puzzleState, numPerRow, info) {
         });
       }
 
-      if (typeOfCriteria === "colors" && numEmptyState <= 4 && numPerRow - numOnState === 2) {
+      if (
+        !ignoreColors &&
+        typeOfCriteria === "colors" &&
+        numEmptyState <= 4 &&
+        numPerRow - numOnState === 2
+      ) {
         var isPossible = false;
         for (let a = 0; a < numEmptyState; a++) {
           const loc1 = value[Constants.emptyState][a];
@@ -120,7 +162,7 @@ export function checkPuzzle(puzzle, puzzleState, numPerRow, info) {
   };
 }
 
-export function markNeighbors(i, j, puzzleState, puzzle, numPerRow) {
+export function markNeighbors(i, j, puzzleState, puzzle, numPerRow, ignoreColors = false) {
   if (puzzleState[i][j] !== Constants.onState)
     return { puzzleState: puzzleState, changed: empty2DArray(puzzle.length, false) };
 
@@ -147,6 +189,7 @@ export function markNeighbors(i, j, puzzleState, puzzle, numPerRow) {
         // filled color
         const letter = puzzle[x][y];
         if (
+          !ignoreColors &&
           puzzleVal === letter &&
           info.colors[alphaToNum(letter)][Constants.onState].length === numPerRow
         )

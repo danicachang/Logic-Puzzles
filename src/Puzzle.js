@@ -11,12 +11,14 @@ import {
   IoPlaySharp,
   IoAlertCircleSharp,
   IoGitBranch,
+  IoExtensionPuzzle,
 } from "react-icons/io5";
 import DogSVG from "./images/dog.svg";
 import * as Constants from "./constants.js";
 import * as Utils from "./utils.js";
 import PuzzleSolver from "./PuzzleSolver.js";
 import "./Puzzle.scss";
+import PuzzleGenerator from "./PuzzleGenerator";
 
 class Puzzle extends React.Component {
   animationTimer = null;
@@ -25,22 +27,20 @@ class Puzzle extends React.Component {
     super(props);
 
     const puzzle = Utils.stringArrayTo2DArray([
-      ["AABBBBBCCC"],
-      ["AAABCBCCCD"],
-      ["AEEBCCCCCD"],
-      ["AECCCFFCCD"],
-      ["EEEEEFCCDD"],
-      ["GEHEEFFCCC"],
-      ["GEHHHFFCCI"],
-      ["GEHJHFHCCI"],
-      ["GGJJHHHIII"],
-      ["GGJJJHHHHH"],
+      ["AAABCDDC"],
+      ["EAABCCCC"],
+      ["EAAAAACA"],
+      ["EAAAAAAA"],
+      ["EEEFFGAA"],
+      ["EFFFFGHA"],
+      ["FFFFGGHH"],
+      ["FFGGGHHH"],
     ]);
     const size = puzzle.length;
     const puzzleState = Utils.empty2DArray(size, Constants.emptyState);
     this.state = {
       size: size,
-      numPerRow: 2,
+      numPerRow: 1,
       puzzle: puzzle,
       puzzleState: puzzleState,
       errors: Utils.empty2DArray(size, false),
@@ -194,7 +194,7 @@ class Puzzle extends React.Component {
 
   checkForErrors() {
     this.setState((state) => {
-      var result = Utils.checkPuzzle(state.puzzle, state.puzzleState, state.numPerRow);
+      var result = Utils.checkPuzzle(state.puzzle, state.puzzleState, state.numPerRow, false, true);
 
       return {
         errors: result.errors,
@@ -235,6 +235,7 @@ class Puzzle extends React.Component {
   }
 
   resetPuzzle() {
+    delete this.initialState.puzzle;
     this.setState(this.initialState);
   }
 
@@ -259,6 +260,30 @@ class Puzzle extends React.Component {
       };
     });
     this.checkForErrors();
+  }
+
+  generatePuzzle() {
+    this.setState((state) => {
+      var generator = new PuzzleGenerator(8, 1);
+      generator.createPuzzle();
+      var guessHistory = Array(generator.history.length)
+        .fill()
+        .map((row) => Utils.empty2DArray(state.size, false));
+
+      if (generator.history.length) {
+        return {
+          puzzle: generator.puzzle,
+          history: generator.history,
+          guessHistory: guessHistory,
+          historyIndex: 0,
+          puzzleState: Utils.clone2D(generator.history[0]),
+        };
+      } else {
+        return {
+          puzzle: generator.puzzle,
+        };
+      }
+    });
   }
 
   solvePuzzle() {
@@ -295,7 +320,7 @@ class Puzzle extends React.Component {
               ></div>
             </CSSTransition>
           </div>
-          {this.state.completed && (
+          {false && this.state.completed && (
             <div className="completedOverlay">
               <div className="completedModal">
                 <FaTrophy />
@@ -350,6 +375,9 @@ class Puzzle extends React.Component {
         <div className="puzzleControls">
           <button onClick={(e) => this.resetPuzzle()}>
             <IoReload />
+          </button>
+          <button onClick={(e) => this.generatePuzzle()}>
+            <IoExtensionPuzzle />
           </button>
           <button onClick={(e) => this.solvePuzzle()}>
             <IoPlaySharp />
