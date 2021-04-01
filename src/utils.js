@@ -7,7 +7,7 @@ export function empty2DArray(size, value) {
 }
 
 export function clone2D(array2d) {
-  return array2d.map((row, x) => {
+  return array2d.map((row) => {
     return row.map((val) => val);
   });
 }

@@ -27,20 +27,22 @@ class Puzzle extends React.Component {
     super(props);
 
     const puzzle = Utils.stringArrayTo2DArray([
-      ["AAABCDDC"],
-      ["EAABCCCC"],
-      ["EAAAAACA"],
-      ["EAAAAAAA"],
-      ["EEEFFGAA"],
-      ["EFFFFGHA"],
-      ["FFFFGGHH"],
-      ["FFGGGHHH"],
+      ["AAAAAAAABB"],
+      ["AAAAAACABB"],
+      ["DEEEACCCBB"],
+      ["DDDDFGGCBB"],
+      ["DDDFFFGGBB"],
+      ["DDHFFFGGBB"],
+      ["DDHHHGGGIB"],
+      ["DDDDDDGGIB"],
+      ["DJJJJJJJII"],
+      ["JJJJJJJJJI"],
     ]);
     const size = puzzle.length;
     const puzzleState = Utils.empty2DArray(size, Constants.emptyState);
     this.state = {
       size: size,
-      numPerRow: 1,
+      numPerRow: 2,
       puzzle: puzzle,
       puzzleState: puzzleState,
       errors: Utils.empty2DArray(size, false),
@@ -264,7 +266,7 @@ class Puzzle extends React.Component {
 
   generatePuzzle() {
     this.setState((state) => {
-      var generator = new PuzzleGenerator(8, 1);
+      var generator = new PuzzleGenerator(state.size, state.numPerRow);
       generator.createPuzzle();
       var guessHistory = Array(generator.history.length)
         .fill()

@@ -14,7 +14,8 @@ class PuzzleGenerator {
   createPuzzle() {
     this.createSolution();
     this.growColors();
-    this.allowOnlyOneSolution();
+    if (this.numPerRow > 1) this.combineColors();
+    //this.allowOnlyOneSolution();
   }
 
   createSolution() {
@@ -47,7 +48,9 @@ class PuzzleGenerator {
     while (growLocations.length > 0 && this.count < 1000) {
       //console.log(this.count, growLocations.slice());
       const randomIndex =
-        this.count < this.size ? this.count : Utils.getRandomInt(growLocations.length);
+        this.numPerRow === 1 && this.count < this.size
+          ? this.count
+          : Utils.getRandomInt(growLocations.length);
       this.count++;
       const loc = growLocations[randomIndex];
       const value = this.puzzle[loc.i][loc.j];
@@ -78,6 +81,74 @@ class PuzzleGenerator {
       return true;
     }
     return false;
+  }
+
+  combineColors() {
+    var adjacent = {};
+    this.puzzle.forEach((row, i) => {
+      row.forEach((value, j) => {
+        if (!(value in adjacent)) adjacent[value] = new Set();
+
+        var directions = [
+          { i: -1, j: 0 },
+          { i: 1, j: 0 },
+          { i: 0, j: -1 },
+          { i: 0, j: 1 },
+        ];
+        directions.forEach((direction) => {
+          const x = i + direction.i;
+          const y = j + direction.j;
+          if (Utils.withinBounds(x, y, this.size)) {
+            var neighborValue = this.puzzle[x][y];
+            if (neighborValue !== value) adjacent[value].add(neighborValue);
+          }
+        });
+      });
+    });
+    var sortedAdjacent = Object.entries(adjacent).sort(([A, setA], [B, setB]) => {
+      return setA.size - setB.size;
+    });
+    console.log(this.puzzle);
+    console.log(sortedAdjacent);
+
+    var colorMapping = {};
+    var errorCount = 0;
+    var success = combine(sortedAdjacent);
+
+    function combine(neighbors) {
+      if (neighbors.length === 0) return true;
+      var myColor = neighbors[0][0];
+      var setOfNeighbors = neighbors[0][1];
+
+      return Array.from(setOfNeighbors).some((combineColor) => {
+        colorMapping[myColor] = neighbors.length / 2 - 1;
+        colorMapping[combineColor] = neighbors.length / 2 - 1;
+        console.log(myColor, combineColor);
+
+        var updatedNeighbors = [];
+        var noErrors = neighbors.every(([color, set]) => {
+          if (color === myColor || color === combineColor) return true;
+          var newSet = new Set(set);
+          newSet.delete(myColor);
+          newSet.delete(combineColor);
+          updatedNeighbors.push([color, newSet]);
+          return newSet.size > 0;
+        });
+
+        if (!noErrors) {
+          console.log("error", neighbors);
+          errorCount++;
+          return false;
+        }
+        return combine(updatedNeighbors);
+      });
+    }
+    console.log(success, colorMapping);
+    console.log("errorCount", errorCount);
+    this.puzzle = this.puzzle.map((row) => {
+      return row.map((value) => Utils.numToAlpha(colorMapping[value]));
+    });
+    console.log(this.puzzle);
   }
 
   allowOnlyOneSolution() {
