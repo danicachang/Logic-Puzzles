@@ -196,7 +196,7 @@ class Puzzle extends React.Component {
 
   checkForErrors() {
     this.setState((state) => {
-      var result = Utils.checkPuzzle(state.puzzle, state.puzzleState, state.numPerRow, false, true);
+      var result = Utils.checkPuzzle(state.puzzle, state.puzzleState, state.numPerRow);
 
       return {
         errors: result.errors,
@@ -265,14 +265,14 @@ class Puzzle extends React.Component {
   }
 
   generatePuzzle() {
+    var generator = new PuzzleGenerator(this.state.size, this.state.numPerRow);
+    generator.createPuzzle();
+    this.resetPuzzle();
     this.setState((state) => {
-      var generator = new PuzzleGenerator(state.size, state.numPerRow);
-      generator.createPuzzle();
-      var guessHistory = Array(generator.history.length)
-        .fill()
-        .map((row) => Utils.empty2DArray(state.size, false));
-
-      if (generator.history.length) {
+      if (generator.history.length > 1) {
+        var guessHistory = Array(generator.history.length)
+          .fill()
+          .map((row) => Utils.empty2DArray(state.size, false));
         return {
           puzzle: generator.puzzle,
           history: generator.history,
@@ -289,9 +289,9 @@ class Puzzle extends React.Component {
   }
 
   solvePuzzle() {
+    var solver = new PuzzleSolver(this.state.puzzle, this.state.numPerRow);
+    var result = solver.solve();
     this.setState((state) => {
-      var solver = new PuzzleSolver(state.puzzle, state.numPerRow);
-      var result = solver.solve();
       return {
         history: result.history,
         guessHistory: result.guessHistory,

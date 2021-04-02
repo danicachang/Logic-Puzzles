@@ -10,12 +10,22 @@ class PuzzleGenerator {
     this.puzzleState = Utils.empty2DArray(size, Constants.emptyState);
     this.history = [Utils.empty2DArray(size, Constants.emptyState)];
     this.count = 0; // prevent infinite loops
+    this.errorCount = 0;
   }
   createPuzzle() {
     this.createSolution();
     this.growColors();
     if (this.numPerRow > 1) this.combineColors();
-    //this.allowOnlyOneSolution();
+    this.allowOnlyOneSolution();
+  }
+
+  testCombineColorErrorRate() {
+    var tries = 1000;
+    this.errorCount = 0;
+    for (let i = 0; i < tries; i++) {
+      this.createPuzzle();
+    }
+    console.log("Errors:", this.errorCount, tries);
   }
 
   createSolution() {
@@ -45,6 +55,7 @@ class PuzzleGenerator {
   }
 
   growToLocations(growLocations) {
+    this.count = 0;
     while (growLocations.length > 0 && this.count < 1000) {
       //console.log(this.count, growLocations.slice());
       const randomIndex =
@@ -108,11 +119,10 @@ class PuzzleGenerator {
     var sortedAdjacent = Object.entries(adjacent).sort(([A, setA], [B, setB]) => {
       return setA.size - setB.size;
     });
-    console.log(this.puzzle);
-    console.log(sortedAdjacent);
+    //console.log(this.puzzle);
+    //console.log(sortedAdjacent);
 
     var colorMapping = {};
-    var errorCount = 0;
     var success = combine(sortedAdjacent);
 
     function combine(neighbors) {
@@ -123,7 +133,7 @@ class PuzzleGenerator {
       return Array.from(setOfNeighbors).some((combineColor) => {
         colorMapping[myColor] = neighbors.length / 2 - 1;
         colorMapping[combineColor] = neighbors.length / 2 - 1;
-        console.log(myColor, combineColor);
+        //console.log(myColor, combineColor);
 
         var updatedNeighbors = [];
         var noErrors = neighbors.every(([color, set]) => {
@@ -136,25 +146,30 @@ class PuzzleGenerator {
         });
 
         if (!noErrors) {
-          console.log("error", neighbors);
-          errorCount++;
+          //console.log("error", neighbors);
           return false;
         }
         return combine(updatedNeighbors);
       });
     }
-    console.log(success, colorMapping);
-    console.log("errorCount", errorCount);
+    //console.log(success, colorMapping);
+    if (!success) {
+      // 3-5% chance of not being able to be combined
+      this.errorCount++;
+      this.growColors();
+      this.combineColors();
+      return;
+    }
     this.puzzle = this.puzzle.map((row) => {
       return row.map((value) => Utils.numToAlpha(colorMapping[value]));
     });
-    console.log(this.puzzle);
+    //console.log(this.puzzle);
   }
 
   allowOnlyOneSolution() {
     this.count = 0;
     var lastPuzzle = Utils.clone2D(this.puzzle);
-    while (this.count < 50) {
+    while (true) {
       this.count++;
       //console.log("attempt", this.count, this.puzzle);
       var solver = new PuzzleSolver(this.puzzle, this.numPerRow, { findMultipleSolutions: true });
@@ -163,6 +178,9 @@ class PuzzleGenerator {
       //console.log("solutions", result.solutions.length, result.solutions);
       if (result.solutions.length === 1) {
         console.log("YAY! Only 1 solution");
+        break;
+      } else if (this.count >= 50) {
+        console.log("Give Up");
         break;
       } else if (result.solutions.length === 0) {
         //console.log("Broken!");
@@ -255,59 +273,5 @@ class PuzzleGenerator {
       this.markContiguous(i, j + 1, puzzle, color);
     return sum;
   }
-
-  /*createSolution() {
-    var columns = Array(this.size * this.numPerRow)
-      .fill()
-      .map((v, i) => Math.floor(i / this.numPerRow));
-
-    this.count = 0;
-    this.puzzle = Utils.empty2DArray(this.size, Constants.emptyState);
-    this.createSolutionRow(columns.slice(), columns.slice(), 0);
-    console.log(this.count);
-  }
-
-  createSolutionRow(columnsToGuess, unusedColumns, index) {
-    //console.log(columnsToGuess.slice(), unusedColumns.slice());
-    if (this.count > 10000) {
-      console.log("Count Reached");
-      console.log(this.clone2D(this.puzzle));
-      return false;
-    }
-    this.count++;
-
-    const rowNum = Math.floor(index / this.numPerRow);
-    if (rowNum >= this.size) return true;
-    if (columnsToGuess.length === 0) return false;
-
-    const randomIndex = this.getRandomInt(columnsToGuess.length);
-    const newColumnsToGuess = columnsToGuess.slice();
-    const columnNum = newColumnsToGuess.splice(randomIndex, 1)[0];
-    //console.log("guess", index, rowNum, columnNum);
-    if (
-      (rowNum > 0 &&
-        (this.puzzle[rowNum - 1][columnNum] === Constants.onState ||
-          (columnNum > 0 && this.puzzle[rowNum - 1][columnNum - 1] === Constants.onState) ||
-          (columnNum < this.size - 1 &&
-            this.puzzle[rowNum - 1][columnNum + 1] === Constants.onState))) ||
-      this.puzzle[rowNum][columnNum] === Constants.onState ||
-      this.puzzle[rowNum][columnNum - 1] === Constants.onState ||
-      this.puzzle[rowNum][columnNum + 1] === Constants.onState
-    ) {
-      //console.log("try again");
-      return this.createSolutionRow(newColumnsToGuess.slice(), unusedColumns.slice(), index);
-    }
-    this.puzzle[rowNum][columnNum] = Constants.onState;
-    const usedIndex = unusedColumns.indexOf(columnNum);
-    const newUnusedColumns = unusedColumns.slice();
-    newUnusedColumns.splice(usedIndex, 1);
-    //console.log(this.clone2D(this.puzzle));
-    if (this.createSolutionRow(newUnusedColumns.slice(), newUnusedColumns.slice(), index + 1))
-      return true;
-
-    console.log("undo", index, newColumnsToGuess.slice(), unusedColumns.slice());
-    this.puzzle[rowNum][columnNum] = Constants.emptyState;
-    return this.createSolutionRow(newColumnsToGuess.slice(), unusedColumns.slice(), index);
-  }*/
 }
 export default PuzzleGenerator;
