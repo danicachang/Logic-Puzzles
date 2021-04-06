@@ -1,6 +1,4 @@
 import React from "react";
-import Popup from "reactjs-popup";
-import "reactjs-popup/dist/index.css";
 import classNames from "classnames/bind";
 import { CSSTransition } from "react-transition-group";
 import { FaTrophy } from "react-icons/fa";
@@ -10,7 +8,6 @@ import {
   IoArrowRedo,
   IoPlaySharp,
   IoAlertCircleSharp,
-  IoGitBranch,
   IoExtensionPuzzle,
 } from "react-icons/io5";
 import DogSVG from "./images/dog.svg";
@@ -384,41 +381,6 @@ class Puzzle extends React.Component {
           <button onClick={(e) => this.solvePuzzle()}>
             <IoPlaySharp />
           </button>
-          <Popup
-            trigger={
-              <button>
-                <IoGitBranch />
-                <small className="branchSubscript">{this.state.guessIndexes.length}</small>
-              </button>
-            }
-            position="top center"
-            closeOnDocumentClick
-          >
-            {(close) => (
-              <div>
-                <ul className="menu">
-                  <li
-                    onClick={(e) => {
-                      this.branch();
-                      close();
-                    }}
-                  >
-                    <IoGitBranch /> Start New Guess
-                  </li>
-                  {this.state.guessIndexes.length > 0 && (
-                    <li
-                      onClick={(e) => {
-                        this.undoBranch();
-                        close();
-                      }}
-                    >
-                      <IoArrowUndo /> Undo Last Guess
-                    </li>
-                  )}
-                </ul>
-              </div>
-            )}
-          </Popup>
           <button onClick={(e) => this.undo()} disabled={this.state.historyIndex < 1}>
             <IoArrowUndo />
           </button>
