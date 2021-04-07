@@ -242,7 +242,7 @@ class PuzzleSolver {
 
   setPuzzleState(i, j, val, saveHistory = true) {
     //console.log(i, j, val);
-    this.puzzleState = Utils.setPuzzleState(this.puzzleState, i, j, val);
+    this.puzzleState = Utils.setValue2D(this.puzzleState, i, j, val);
 
     if (val === Constants.onState) {
       var results = Utils.markNeighbors(

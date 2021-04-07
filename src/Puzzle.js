@@ -1,5 +1,7 @@
 import React from "react";
 import classNames from "classnames/bind";
+import Tippy from "@tippyjs/react";
+import "tippy.js/dist/tippy.css";
 import { CSSTransition } from "react-transition-group";
 import { FaTrophy } from "react-icons/fa";
 import {
@@ -22,7 +24,7 @@ class Puzzle extends React.Component {
 
   constructor(props) {
     super(props);
-
+    /* spell-checker: disable */
     const puzzle = Utils.stringArrayTo2DArray([
       ["AAAAAAAABB"],
       ["AAAAAACABB"],
@@ -35,6 +37,7 @@ class Puzzle extends React.Component {
       ["DJJJJJJJII"],
       ["JJJJJJJJJI"],
     ]);
+    /* spell-checker: enabled */
     const size = puzzle.length;
     const puzzleState = Utils.empty2DArray(size, Constants.emptyState);
     this.state = {
@@ -50,6 +53,7 @@ class Puzzle extends React.Component {
       completed: false,
       guessHistory: [Utils.empty2DArray(size, false)],
       guessIndexes: [],
+      contextMenu: Utils.empty2DArray(size, false),
     };
     this.initialState = this.state;
     this.circleRef = React.createRef();
@@ -77,7 +81,7 @@ class Puzzle extends React.Component {
       (state) => {
         const currentVal = state.puzzleState[i][j];
         if (alt) {
-          newVal = currentVal === Constants.emptyState ? Constants.onState : Constants.emptyState;
+          newVal = Constants.onState;
         } else {
           newVal =
             currentVal === Constants.emptyState
@@ -87,7 +91,7 @@ class Puzzle extends React.Component {
               : Constants.emptyState;
         }
 
-        var newState = Utils.setPuzzleState(state.puzzleState, i, j, newVal);
+        var newState = Utils.setValue2D(state.puzzleState, i, j, newVal);
 
         var animating = Utils.empty2DArray(state.size, false);
 
@@ -144,20 +148,27 @@ class Puzzle extends React.Component {
     this.setState((state) => {
       var history = state.history;
       var guessHistory = state.guessHistory;
+      var newGuessIndexes = state.guessIndexes;
       if (state.historyIndex + 1 < history.length) {
         history = history.slice(0, state.historyIndex + 1);
         guessHistory = guessHistory.slice(0, state.historyIndex + 1);
+        newGuessIndexes = [];
+        state.guessIndexes.forEach((i) => {
+          if (i < history.length - 1) newGuessIndexes.push(i);
+        });
       }
       const lastHistory = history[history.length - 1];
       const lastGuess = guessHistory[history.length - 1];
-      var guessIndex = this.state.guessIndexes.length;
+      var guessIndex = newGuessIndexes.length;
       guessIndex = guessIndex === 0 ? false : guessIndex;
+
       return {
         history: history.concat([state.puzzleState]),
         historyIndex: history.length,
         guessHistory: guessHistory.concat([
           Utils.guesses(lastHistory, state.puzzleState, lastGuess, guessIndex),
         ]),
+        guessIndexes: newGuessIndexes,
       };
     });
   }
@@ -297,6 +308,15 @@ class Puzzle extends React.Component {
     });
   }
 
+  setContextMenu(i, j, value) {
+    console.log(this.state.contextMenu);
+    this.setState((state) => {
+      return {
+        contextMenu: Utils.setValue2D(state.contextMenu, i, j, value),
+      };
+    });
+  }
+
   render() {
     return (
       <div className="puzzleContainer">
@@ -354,17 +374,48 @@ class Puzzle extends React.Component {
                   var dog = val === Constants.onState ? <img src={DogSVG} alt="Dog" /> : "";
                   var icon = this.state.errors[i][j] ? <IoAlertCircleSharp /> : "";
                   return (
-                    <div
+                    <Tippy
                       key={j}
-                      className={cellClasses}
-                      onClick={(e) => this.handleClick(e, i, j)}
-                      onContextMenu={(e) => this.handleRightClick(e, i, j)}
+                      content={
+                        <span>
+                          Guess here?
+                          <button
+                            onClick={(e) => {
+                              this.branch();
+                              this.handleClick(e, i, j, true);
+                              this.setContextMenu(i, j, false);
+                              return false;
+                            }}
+                          >
+                            Guess
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              this.setContextMenu(i, j, false);
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </span>
+                      }
+                      onClickOutside={() => this.setContextMenu(i, j, false)}
+                      visible={this.state.contextMenu[i][j]}
+                      interactive="true"
                     >
-                      <div className="content">
-                        {dog}
-                        {icon}
+                      <div
+                        className={cellClasses}
+                        onClick={(e) => this.handleClick(e, i, j)}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          this.setContextMenu(i, j, true);
+                        }}
+                      >
+                        <div className="content">
+                          {dog}
+                          {icon}
+                        </div>
                       </div>
-                    </div>
+                    </Tippy>
                   );
                 })}
               </div>

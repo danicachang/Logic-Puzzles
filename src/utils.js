@@ -63,9 +63,9 @@ export function rotateClockwise(puzzle) {
   return rotated;
 }
 
-export function setPuzzleState(puzzleState, i, j, newVal) {
+export function setValue2D(array2D, i, j, newVal) {
   // non-modifying version of state.puzzleState[i][j]=newVal;
-  return puzzleState.map((row, x) => {
+  return array2D.map((row, x) => {
     return row.map((val, y) => {
       if (i === x && j === y) {
         return newVal;
