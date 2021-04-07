@@ -74,7 +74,7 @@ class Puzzle extends React.Component {
   }*/
 
   handleClick(e, i, j, alt = false) {
-    e.preventDefault();
+    //e.preventDefault();
     var newVal;
     var setClearAnimationsTimer = false;
     this.setState(
@@ -412,7 +412,15 @@ class Puzzle extends React.Component {
                       >
                         <div className="content">
                           {dog}
-                          {icon}
+
+                          <CSSTransition
+                            in={this.state.errors[i][j]}
+                            timeout={2000}
+                            classNames="fade"
+                            unmountOnExit
+                          >
+                            <IoAlertCircleSharp />
+                          </CSSTransition>
                         </div>
                       </div>
                     </Tippy>
