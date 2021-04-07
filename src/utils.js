@@ -255,7 +255,8 @@ export function computeInfo(puzzleState, puzzle) {
 export function guesses(prevState, state, prevGuess, value) {
   return prevState.map((row, x) => {
     return row.map((val, y) => {
-      return val !== state[x][y] ? value : prevGuess[x][y];
+      if (state[x][y] === Constants.emptyState) return false;
+      else return val !== state[x][y] ? value : prevGuess[x][y];
     });
   });
 }
